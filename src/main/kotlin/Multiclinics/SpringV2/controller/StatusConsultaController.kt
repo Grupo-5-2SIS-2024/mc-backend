@@ -14,7 +14,7 @@ class StatusConsultaController(
     var StatusRepository : StatusRepository,
     val statusConsultaService: StatusConsultaService
 ) {
-    @CrossOrigin
+
     @PostMapping
     fun adicionarStatus(@RequestBody novoStatus: StatusConsulta): ResponseEntity<StatusConsulta> {
 
@@ -24,21 +24,21 @@ class StatusConsultaController(
 
     }
 
-    @CrossOrigin
+
     @PutMapping("/{id}")
     fun atualizarStatus(@PathVariable id: Int, @RequestBody @Valid novoStatus: StatusConsulta): ResponseEntity<*> {
         val statusAtualizado = statusConsultaService.atualizar(id, novoStatus)
         return ResponseEntity.ok(statusAtualizado)
     }
 
-    @CrossOrigin
+
     @DeleteMapping("/{id}")
     fun deletarStatus(@PathVariable id: Int): ResponseEntity<StatusConsulta> {
         statusConsultaService.deletar(id)
         return ResponseEntity.status(200).build()
     }
 
-    @CrossOrigin
+
     @GetMapping
     fun listarStatus(): ResponseEntity<List<StatusConsulta>> {
         val status = statusConsultaService.getLista()

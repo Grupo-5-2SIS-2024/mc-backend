@@ -17,21 +17,21 @@ class PacienteController(
     val pacienteRepository: PacienteRepository,
     val pacienteService: PacienteService
 ) {
-    @CrossOrigin
+
     @PostMapping("/ComResponsavel")
     fun adicionarPaciente(@RequestBody novoPaciente: PacienteComResponsavel): ResponseEntity<Paciente> {
         val pacienteCriado = pacienteService.salvar(novoPaciente)
         return ResponseEntity.status(201).body(pacienteCriado)
     }
 
-    @CrossOrigin
+
     @PostMapping("/SemResponsavel")
     fun adicionarPacienteSemResponsavel(@RequestBody novoPaciente: PacienteSemResponsavel): ResponseEntity<Paciente> {
         val pacienteCriado = pacienteService.salvarSemResponsavel(novoPaciente)
         return ResponseEntity.status(201).body(pacienteCriado)
     }
 
-    @CrossOrigin
+
     @PutMapping("/{id}")
     fun atualizarPaciente(@PathVariable id: Int, @RequestBody @Valid novoPaciente: Paciente): ResponseEntity<*> {
 
@@ -39,27 +39,27 @@ class PacienteController(
         return ResponseEntity.ok(pacienteAtualizado)
     }
 
-    @CrossOrigin
+
     @DeleteMapping("/{id}")
     fun deletarPaciente(@PathVariable id: Int): ResponseEntity<Paciente> {
         pacienteService.deletar(id)
         return ResponseEntity.status(200).build()
     }
 
-    @CrossOrigin
+
     @GetMapping
     fun listarPaciente(): ResponseEntity<List<Paciente>> {
         val pacientes = pacienteService.getLista()
         return ResponseEntity.status(200).body(pacientes)
     }
 
-    @CrossOrigin
+
     @GetMapping("/{id}")
     fun buscarPacientePorId(@PathVariable id: Int): ResponseEntity<Paciente> {
         return pacienteService.buscarPacientePorId(id)
     }
 
-    @CrossOrigin
+
     @GetMapping("/conversoes-ultimos-seis-meses")
     fun getConversoesUltimosSeisMeses(): ResponseEntity<List<Map<String, Any>>> {
         val conversoes = pacienteService.getConversoesUltimosSeisMeses()
@@ -67,28 +67,28 @@ class PacienteController(
     }
 
 
-    @CrossOrigin
+
     @GetMapping("/porcentagem-aba")
     fun calcularPorcentagemPacientesABA(): ResponseEntity<Double> {
         val porcentagemABA = pacienteService.calcularPorcentagemPacientesABA()
         return ResponseEntity.ok(porcentagemABA)
     }
 
-    @CrossOrigin
+
     @GetMapping("/ativos")
     fun contarPacientesAtivos(): ResponseEntity<Long> {
         val pacientesAtivos = pacienteService.contarPacientesAtivos()
         return ResponseEntity.ok(pacientesAtivos)
     }
 
-    @CrossOrigin
+
     @GetMapping("/ultimo-trimestre")
     fun contarPacientesUltimoTrimestre(): ResponseEntity<Long> {
         val pacientesUltimoTrimestre = pacienteService.contarPacientesUltimoTrimestre()
         return ResponseEntity.ok(pacientesUltimoTrimestre)
     }
 
-    @CrossOrigin
+
     @GetMapping("/agendamentos-vencidos")
     fun contarAgendamentosVencidos(): ResponseEntity<Long> {
         val agendamentosVencidos = pacienteService.contarAgendamentosVencidos()

@@ -17,8 +17,8 @@ class MedicoController(
     val medicoService: MedicoService
 ) {
 
-    @CrossOrigin
-    @PutMapping("/login")
+
+    @PostMapping("/login")
     fun logarMedico(@RequestBody medico: Medico): ResponseEntity<Medico> {
         val medicoLogado = medicoRepository.findByEmailAndSenha(medico.email ?: "", medico.senha ?: "")
 
@@ -31,7 +31,7 @@ class MedicoController(
         }
     }
 
-    @CrossOrigin
+
     @PutMapping("/logout")
     fun deslogarMedico(@RequestBody medico: Medico): ResponseEntity<Medico> {
         val medicoLogado = medicoRepository.findByEmail(medico.email ?: "")
@@ -48,14 +48,14 @@ class MedicoController(
 
 
 
-    @CrossOrigin
+
     @PostMapping
     fun adicionarMedico(@RequestBody @Valid novoMedico: Medico): ResponseEntity<Medico> {
         medicoService.salvar(novoMedico)
         return ResponseEntity.status(201).body(novoMedico)
     }
 
-    @CrossOrigin
+
     @PutMapping("/{id}")
     fun atualizarMedico(@PathVariable id: Int, @RequestBody @Valid novoMedico: Medico): ResponseEntity<*>{
             val medicoAtualizado = medicoService.atualizar(id, novoMedico)
@@ -63,7 +63,7 @@ class MedicoController(
 
     }
 
-    @CrossOrigin
+
     @DeleteMapping("/{id}")
     fun deletarMedico(@PathVariable id: Int): ResponseEntity<Medico> {
             medicoService.deletar(id)
@@ -71,35 +71,35 @@ class MedicoController(
 
     }
 
-    @CrossOrigin
+
     @GetMapping
     fun listarMedicos(): ResponseEntity<List<Medico>> {
         val medicos = medicoService.getLista()
         return ResponseEntity.status(200).body(medicos)
     }
 
-    @CrossOrigin
+
     @GetMapping("/{id}")
     fun listarMedicoPorId(@PathVariable id: Int): ResponseEntity<Medico> {
         val medico = medicoService.listarPorId(id)
         return ResponseEntity.status(200).body(medico)
     }
 
-    @CrossOrigin
+
     @GetMapping("/totalAdministradores")
     fun totalAdministradores(): ResponseEntity<Long> {
         val total = medicoService.totalAdministradores()
         return ResponseEntity.status(200).body(total)
     }
 
-    @CrossOrigin
+
     @GetMapping("/totalAdministradoresAtivos")
     fun totalAdministradoresAtivos(): ResponseEntity<Long> {
         val total = medicoService.totalAdministradoresAtivos()
         return ResponseEntity.status(200).body(total)
     }
 
-    @CrossOrigin
+
     @GetMapping("/graficoGeral")
     fun obterDadosGraficoGeral(): ResponseEntity<List<GraficoGeralAdm>> {
         val dadosGrafico = medicoService.obterDadosGraficoGeral()

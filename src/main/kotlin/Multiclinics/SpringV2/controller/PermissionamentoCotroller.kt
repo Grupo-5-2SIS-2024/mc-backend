@@ -14,21 +14,21 @@ class PermissionamentoCotroller(
     val permissionamentoRepository: PermissionamentoRepository,
     val permissaoService: PermissionamentoService
 ) {
-    @CrossOrigin
+
     @PostMapping
     fun adicionarPermissao(@RequestBody novaPermissao: Permissionamento): ResponseEntity<Permissionamento> {
         permissaoService.salvar(novaPermissao)
         return ResponseEntity.status(201).body(novaPermissao)
     }
 
-    @CrossOrigin
+
     @PutMapping("/{id}")
     fun atualizarPermissao(@PathVariable id: Int, @RequestBody @Valid novaPermissao: Permissionamento): ResponseEntity<*> {
         val permissaoAtualizado = permissaoService.atualizar(id, novaPermissao)
         return ResponseEntity.ok(permissaoAtualizado)
     }
 
-    @CrossOrigin
+
     @DeleteMapping("/{id}")
     fun deletarPermissao(@PathVariable id: Int): ResponseEntity<Permissionamento> {
             permissaoService.deletar(id)
@@ -36,7 +36,7 @@ class PermissionamentoCotroller(
 
     }
 
-    @CrossOrigin
+
     @GetMapping
     fun listarPermissao(): ResponseEntity<List<Permissionamento>> {
         val permissoes = permissaoService.getLista()

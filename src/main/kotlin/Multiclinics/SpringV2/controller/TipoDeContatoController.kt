@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*
 class TipoDeContatoController(
     val tipoDeContatoRepository: TipoDeContatoRepository
 ) {
-    @CrossOrigin
+
     @PostMapping
     fun adicionarTipo(@RequestBody novoTipo: TipoDeContato): ResponseEntity<TipoDeContato> {
         val TipoExistente = tipoDeContatoRepository.findByFaseContato(novoTipo.faseContato?:"")
@@ -24,7 +24,7 @@ class TipoDeContatoController(
         }
     }
 
-    @CrossOrigin
+
     @PutMapping("/{id}")
     fun atualizarTipo(@PathVariable id: Int, @RequestBody @Valid novoTipo: TipoDeContato): ResponseEntity<TipoDeContato> {
         val TipoExistente = tipoDeContatoRepository.findById(id)
@@ -42,7 +42,7 @@ class TipoDeContatoController(
         }
     }
 
-    @CrossOrigin
+
     @DeleteMapping("/{id}")
     fun deletarTipo(@PathVariable id: Int): ResponseEntity<TipoDeContato> {
         if (tipoDeContatoRepository.existsById(id)) {
@@ -52,7 +52,7 @@ class TipoDeContatoController(
         return ResponseEntity.status(404).build()
     }
 
-    @CrossOrigin
+
     @GetMapping
     fun listarTipo(): ResponseEntity<List<TipoDeContato>> {
         val tipos = tipoDeContatoRepository.findAll()

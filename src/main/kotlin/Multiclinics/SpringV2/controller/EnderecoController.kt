@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*
 class EnderecoController(
     val enderecoRespository: EnderecoRespository
 ) {
-    @CrossOrigin
+
     @PostMapping
     fun adicionarEndereco(@RequestBody novoEndereco: Endereco): ResponseEntity<Endereco> {
         val EnderecoExistente = enderecoRespository.findByCep(novoEndereco.cep?:"")
@@ -24,7 +24,7 @@ class EnderecoController(
         }
     }
 
-    @CrossOrigin
+
     @PutMapping("/{id}")
     fun atualizarEndereco(@PathVariable id: Int, @RequestBody @Valid novoEndereco: Endereco): ResponseEntity<Endereco> {
         val EnderecoExistente = enderecoRespository.findById(id)
@@ -44,7 +44,7 @@ class EnderecoController(
         }
     }
 
-    @CrossOrigin
+
     @DeleteMapping("/{id}")
     fun deletarEndereco(@PathVariable id: Int): ResponseEntity<Endereco> {
         if (enderecoRespository.existsById(id)) {
@@ -54,7 +54,7 @@ class EnderecoController(
         return ResponseEntity.status(404).build()
     }
 
-    @CrossOrigin
+
     @GetMapping
     fun listarEndereco(): ResponseEntity<List<Endereco>> {
         val enderecos = enderecoRespository.findAll()

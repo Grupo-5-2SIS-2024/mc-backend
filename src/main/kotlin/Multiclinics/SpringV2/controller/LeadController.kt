@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*
 class LeadController(
     val leadRepository: PossivelClienteRepository
 ) {
-    @CrossOrigin
+
     @PostMapping
     fun adicionarLead(@RequestBody novoLead: PossivelCliente): ResponseEntity<PossivelCliente> {
         val LeadExistente = leadRepository.findByEmail(novoLead.email?:"")
@@ -23,7 +23,7 @@ class LeadController(
         }
     }
 
-    @CrossOrigin
+
     @PutMapping("/{id}")
     fun atualizarLead(@PathVariable id: Int, @RequestBody @Valid novoLead: PossivelCliente): ResponseEntity<PossivelCliente> {
         val LeadExistente = leadRepository.findById(id)
@@ -47,7 +47,7 @@ class LeadController(
         }
     }
 
-    @CrossOrigin
+
     @DeleteMapping("/{id}")
     fun deletarLead(@PathVariable id: Int): ResponseEntity<PossivelCliente> {
         if (leadRepository.existsById(id)) {
@@ -57,14 +57,14 @@ class LeadController(
         return ResponseEntity.status(404).build()
     }
 
-    @CrossOrigin
+
     @GetMapping
     fun listarLead(): ResponseEntity<List<PossivelCliente>> {
         val leads = leadRepository.findAll()
         return ResponseEntity.status(200).body(leads)
     }
 
-    @CrossOrigin
+
     @GetMapping("/percentual-convertidos")
     fun percentualLeadsConvertidos(): ResponseEntity<Double> {
         val percentual = leadRepository.percentualLeadsConvertidos()

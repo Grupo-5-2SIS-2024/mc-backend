@@ -14,13 +14,13 @@ class ResponsavelController(
     val responsavelRepository: ResponsavelRepository,
     val responsavelService: ResponsavelService
 ) {
-    @CrossOrigin
+
     @PostMapping
     fun adicionarResponsavel(@RequestBody novoResponsavel: Responsavel): ResponseEntity<Responsavel> {
         responsavelService.salvar(novoResponsavel)
         return ResponseEntity.status(201).body(novoResponsavel)
     }
-    @CrossOrigin
+
     @PutMapping("/{id}")
     fun atualizarResponsavel(@PathVariable id: Int, @RequestBody @Valid novoResponsavel: Responsavel): ResponseEntity<*> {
 
@@ -29,21 +29,21 @@ class ResponsavelController(
 
     }
 
-    @CrossOrigin
+
     @DeleteMapping("/{id}")
     fun deletarResponsavel(@PathVariable id: Int): ResponseEntity<Responsavel> {
         responsavelService.deletar(id)
         return ResponseEntity.status(200).build()
     }
 
-    @CrossOrigin
+
     @GetMapping
     fun listarResponsavel(): ResponseEntity<List<Responsavel>> {
         val responsaveis = responsavelService.getLista()
         return ResponseEntity.status(200).body(responsaveis)
     }
 
-    @CrossOrigin
+
     @GetMapping("/cpf")
     fun buscarResponsavelPorCpf(@RequestParam cpf: String): ResponseEntity<Responsavel> {
         val responsavel = responsavelService.buscarPorCpf(cpf)

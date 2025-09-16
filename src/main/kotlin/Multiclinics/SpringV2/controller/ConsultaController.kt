@@ -24,7 +24,7 @@ class ConsultaController(
     val consultaService: ConsultaService
 ) {
 
-    @CrossOrigin
+
     @PostMapping
     fun agendarConsulta(@RequestBody @Valid novaConsulta: Consulta): ResponseEntity<Consulta> {
 
@@ -32,20 +32,20 @@ class ConsultaController(
         return ResponseEntity.status(201).body(consultaAgendada)
     }
 
-    @CrossOrigin
+
     @PutMapping("/{id}")
     fun alterarConsulta(@PathVariable id: Int, @RequestBody @Valid novaConsulta: Consulta): ResponseEntity<*> {
         val consultaAtualizada = consultaService.atualizar(id, novaConsulta)
         return ResponseEntity.ok(consultaAtualizada)
     }
 
-    @CrossOrigin
+
     @DeleteMapping("/{id}")
     fun cancelarConsulta(@PathVariable id: Int): ResponseEntity<Consulta> {
         consultaService.deletar(id)
         return  ResponseEntity.status(200).build()
     }
-    @CrossOrigin
+
     @GetMapping("/agendamentosProximos")
     fun agendamentosProximos(): ResponseEntity<*> {
         val agendamentoProximos = consultaService.getTop3ConsultasByData()
@@ -53,7 +53,7 @@ class ConsultaController(
     }
 
 
-    @CrossOrigin
+
     @GetMapping
     fun listar(): ResponseEntity<List<Consulta>> {
         val Consultas = consultaService.getLista()
@@ -62,14 +62,14 @@ class ConsultaController(
 
     }
 
-    @CrossOrigin
+
     @GetMapping("/{nome}")
     fun listarConsultasMedico(@PathVariable nome: String): ResponseEntity<*> {
         val consultasMedico = consultaService.getListaNome(nome)
         return ResponseEntity.status(200).body(consultasMedico)
     }
 
-    @CrossOrigin
+
     @GetMapping("/listarConsultasMedicoID/{id}")
     fun listarConsultasMedicoID(@PathVariable id: Int): ResponseEntity<*> {
         val consultasMedico = consultaService.getListaID(id)
@@ -81,14 +81,14 @@ class ConsultaController(
 
 // API INDIVIDUAL PEDRI
 
-    @CrossOrigin
+
     @GetMapping("/altas-ultimos-seis-meses")
     fun getAltasUltimosSeisMeses(): ResponseEntity<List<Map<String, Any>>> {
         val altas = consultaService.getAltasUltimosSeisMeses()
         return ResponseEntity.ok(altas)
     }
 
-    @CrossOrigin
+
     @GetMapping("/horarios-ultimos-seis-meses")
     fun getHorariosUltimosSeisMeses(): ResponseEntity<List<Map<String, Any>>> {
         val horarios = consultaService.getHorariosUltimosSeisMeses()
@@ -97,7 +97,7 @@ class ConsultaController(
 
 
 
-    @CrossOrigin
+
     @GetMapping("/percentagem-concluidos")
     fun getConcluidosETotal(): Map<String, Any> {
         return consultaService.getConcluidosETotal()
@@ -110,7 +110,7 @@ class ConsultaController(
 
 
 
-    @CrossOrigin
+
     @GetMapping("/export/csv")
     fun exportarConsultasCsv(response: HttpServletResponse) {
         val consultas = consultaService.getLista()

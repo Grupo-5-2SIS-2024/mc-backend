@@ -16,7 +16,7 @@ class AcompanhamentoController(
     val acompanhamentoRepository: AcompanhamentoRepository,
     val acompanhamentoService: AcompanhamentoService
 ) {
-    @CrossOrigin
+
     @PostMapping
     fun adicionarAcompanhamento(@RequestBody novaAcompanhamento: Acompanhamento): ResponseEntity<Acompanhamento> {
 
@@ -24,26 +24,26 @@ class AcompanhamentoController(
         return ResponseEntity.status(201).body(novaAcompanhamento)
 
     }
-    @CrossOrigin
+
     @PutMapping("/{id}")
     fun atualizarAcompanhamento(@PathVariable id: Int, @RequestBody @Valid novoAcompanhamento: Acompanhamento): ResponseEntity<*> {
         val acompanhamentoAtualizada = acompanhamentoService.atualizar(id, novoAcompanhamento)
         return ResponseEntity.ok(acompanhamentoAtualizada)
     }
 
-    @CrossOrigin
+
     @DeleteMapping("/{id}")
     fun deletarAcompanhamento(@PathVariable id: Int): ResponseEntity<Acompanhamento> {
         acompanhamentoService.deletar(id)
         return  ResponseEntity.status(200).build()
     }
-    @CrossOrigin
+
     @GetMapping
     fun listarAcompanhamento(): ResponseEntity<List<Acompanhamento>> {
         val acompanhamentos = acompanhamentoService.getLista()
         return ResponseEntity.status(200).body(acompanhamentos)
     }
-    @CrossOrigin
+
     @PostMapping(
         value = ["/importar-feedback-txt/{fkConsulta}"],
         consumes = ["text/plain"]

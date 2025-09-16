@@ -15,7 +15,7 @@ class NotaController (
     val notasRepository: NotasRepository,
     val notasService: NotasService
 ){
-    @CrossOrigin
+
     @PostMapping
     fun adicionarNota(@RequestBody novaNota: Notas): ResponseEntity<Notas> {
 
@@ -23,7 +23,7 @@ class NotaController (
         return ResponseEntity.status(201).body(novaNota)
 
     }
-    @CrossOrigin
+
     @PutMapping("/{id}")
     fun atualizarNota(@PathVariable id: Int, @RequestBody @Valid novaNota: Notas): ResponseEntity<*> {
             val NotaAtualizado = notasService.atualizar(id, novaNota)
@@ -31,13 +31,13 @@ class NotaController (
 
     }
 
-    @CrossOrigin
+
     @DeleteMapping("/{id}")
     fun deletarNota(@PathVariable id: Int): ResponseEntity<Notas> {
         notasService.deletar(id)
         return ResponseEntity.status(200).build()
     }
-    @CrossOrigin
+
     @GetMapping
     fun listarNota(): ResponseEntity<List<Notas>> {
         val notas = notasService.getLista()
