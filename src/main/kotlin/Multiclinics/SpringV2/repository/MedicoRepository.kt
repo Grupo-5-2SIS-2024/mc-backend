@@ -27,4 +27,6 @@ interface MedicoRepository: JpaRepository<Medico, Int> {
               "GROUP BY em.area"
       )
    fun obterDadosGraficoGeral(): List<GraficoGeralAdm>
+
+   fun findAllByAtivoTrue(): List<Medico>
 }

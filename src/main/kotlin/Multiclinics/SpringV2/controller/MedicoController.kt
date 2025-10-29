@@ -79,6 +79,13 @@ class MedicoController(
     }
 
 
+    @GetMapping("/todos")
+    fun listarTodosMedicos(): ResponseEntity<List<Medico>> {
+        val medicos = medicoService.getListaTodos()
+        return ResponseEntity.status(200).body(medicos)
+    }
+
+
     @GetMapping("/{id}")
     fun listarMedicoPorId(@PathVariable id: Int): ResponseEntity<Medico> {
         val medico = medicoService.listarPorId(id)
