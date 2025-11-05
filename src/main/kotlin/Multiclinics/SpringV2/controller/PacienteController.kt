@@ -75,13 +75,6 @@ class PacienteController(
     }
 
 
-    @GetMapping("/ativos")
-    fun contarPacientesAtivos(): ResponseEntity<Long> {
-        val pacientesAtivos = pacienteService.contarPacientesAtivos()
-        return ResponseEntity.ok(pacientesAtivos)
-    }
-
-
     @GetMapping("/ultimo-trimestre")
     fun contarPacientesUltimoTrimestre(): ResponseEntity<Long> {
         val pacientesUltimoTrimestre = pacienteService.contarPacientesUltimoTrimestre()
@@ -93,6 +86,12 @@ class PacienteController(
     fun contarAgendamentosVencidos(): ResponseEntity<Long> {
         val agendamentosVencidos = pacienteService.contarAgendamentosVencidos()
         return ResponseEntity.ok(agendamentosVencidos)
+    }
+
+    @GetMapping("/todos")
+    fun listarTodosPacientes(): ResponseEntity<List<Paciente>> {
+        val pacientes = pacienteService.listarTodosPacientes()
+        return ResponseEntity.ok(pacientes)
     }
 
 }

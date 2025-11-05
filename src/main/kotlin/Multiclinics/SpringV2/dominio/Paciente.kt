@@ -28,7 +28,10 @@ data class Paciente(
    var responsavel: Responsavel? = null,
 
    @ManyToOne
-   var endereco: Endereco? = null
+   var endereco: Endereco? = null,
+
+   @Column(nullable = false)
+   var ativo: Boolean = true
 ):Cliente(){
 
 }

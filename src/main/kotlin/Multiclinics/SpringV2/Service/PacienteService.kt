@@ -113,7 +113,7 @@ class PacienteService(
     }
 
     fun getLista(): List<Paciente> {
-        val lista = pacienteRepository.findAll()
+        val lista = pacienteRepository.findAll().filter { it.ativo }
         validarLista(lista)
         return lista
     }
@@ -155,15 +155,15 @@ class PacienteService(
         return pacienteRepository.calcularPorcentagemPacientesABA()
     }
 
-    fun contarPacientesAtivos(): Long {
-        return pacienteRepository.contarPacientesAtivos()
-    }
-
     fun contarPacientesUltimoTrimestre(): Long {
         return pacienteRepository.contarPacientesUltimoTrimestre()
     }
 
     fun contarAgendamentosVencidos(): Long {
         return pacienteRepository.contarAgendamentosVencidos()
+    }
+
+    fun listarTodosPacientes(): List<Paciente> {
+        return pacienteRepository.findAll()
     }
 }
