@@ -2,6 +2,7 @@ package Multiclinics.SpringV2.Service
 
 import Multiclinics.SpringV2.dominio.Consulta
 import Multiclinics.SpringV2.dominio.Medico
+import Multiclinics.SpringV2.dominio.StatusConsulta
 import Multiclinics.SpringV2.repository.ConsultaRepository
 import Multiclinics.SpringV2.repository.MedicoRepository
 import org.springframework.http.HttpStatusCode
@@ -16,7 +17,8 @@ import java.time.LocalDateTime
 @Service
 class ConsultaService(
     val consultaRepository: ConsultaRepository,
-    val medicoRepository: MedicoRepository
+    val medicoRepository: MedicoRepository,
+    private val statusConsultaService: StatusConsultaService // Adiciona a dependência
 ) {
     fun validarLista(lista: List<*>) {
         if (lista.isEmpty()) {
@@ -211,7 +213,41 @@ class ConsultaService(
         return cancelados.toDouble()
     }
 
+    fun atualizarStatus(id: Int, statusId: Int): Consulta {
+        val consultaExistente = consultaRepository.findById(id)
+        if (consultaExistente.isPresent) {
+            val consulta = consultaExistente.get()
+            val consultaAtualizada = consulta.copy(statusConsulta = consulta.statusConsulta?.copy(id = statusId))
+            return consultaRepository.save(consultaAtualizada)
+        } else {
+            throw ResponseStatusException(HttpStatusCode.valueOf(404))
+        }
+    }
 
+    fun atualizarStatusComStatus(id: Int, status: StatusConsulta): Consulta {
+        val consultaExistente = consultaRepository.findById(id)
+        if (consultaExistente.isPresent) {
+            val consulta = consultaExistente.get()
+            val consultaAtualizada = consulta.copy(statusConsulta = status)
+            return consultaRepository.save(consultaAtualizada)
+        } else {
+            throw ResponseStatusException(HttpStatusCode.valueOf(404))
+        }
+    }
 
+    fun atualizarStatusConsulta(id: Int, statusId: Int): Consulta? {
+        val consultaOpt = consultaRepository.findById(id)
+        if (consultaOpt.isPresent) {
+            val consulta = consultaOpt.get()
+            // Busca o status pelo id
+            val status = statusConsultaService.buscarPorId(statusId)
+            if (status != null) {
+                consulta.statusConsulta = status
+                consultaRepository.save(consulta)
+                return consulta
+            }
+        }
+        return null
+    }
 
 }

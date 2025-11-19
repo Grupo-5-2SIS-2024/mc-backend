@@ -15,7 +15,7 @@ class CorsConfig {
         val config = CorsConfiguration()
 
         config.allowedOriginPatterns = listOf("*")
-        config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
         config.allowedHeaders = listOf("*")
 
         source.registerCorsConfiguration("/**", config)

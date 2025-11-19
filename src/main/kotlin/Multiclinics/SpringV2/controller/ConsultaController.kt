@@ -1,6 +1,7 @@
 package Multiclinics.SpringV2.controller
 
 import Multiclinics.SpringV2.Service.ConsultaService
+import Multiclinics.SpringV2.Service.StatusConsultaService
 import Multiclinics.SpringV2.dominio.Consulta
 import Multiclinics.SpringV2.repository.ConsultaRepository
 import Multiclinics.SpringV2.repository.MedicoRepository
@@ -8,12 +9,6 @@ import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.io.ByteArrayOutputStream
-import java.io.OutputStreamWriter
-import java.nio.charset.StandardCharsets
-import org.springframework.http.HttpHeaders
-import org.springframework.http.MediaType
-
 
 
 @RestController
@@ -21,7 +16,8 @@ import org.springframework.http.MediaType
 class ConsultaController(
     val consultaRepository: ConsultaRepository,
     val medicoRepository: MedicoRepository,
-    val consultaService: ConsultaService
+    val consultaService: ConsultaService,
+    private val statusConsultaService: StatusConsultaService
 ) {
 
 
@@ -105,8 +101,15 @@ class ConsultaController(
 
 
 
-
-
+    @GetMapping("/id/{id}")
+    fun obterConsultaPorId(@PathVariable id: Int): ResponseEntity<Consulta> {
+        val consulta = consultaRepository.findById(id)
+        return if (consulta.isPresent) {
+            ResponseEntity.ok(consulta.get())
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
 
 
 
@@ -139,6 +142,11 @@ class ConsultaController(
         writer.close()
     }
 
+    @PatchMapping("/{id}/status")
+    fun atualizarStatusConsulta(@PathVariable id: Int, @RequestParam statusId: Int): ResponseEntity<*> {
+        val consultaAtualizada = consultaService.atualizarStatusConsulta(id, statusId)
+        return ResponseEntity.ok(consultaAtualizada)
+    }
 
 
 }

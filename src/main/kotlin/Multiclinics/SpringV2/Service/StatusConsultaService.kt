@@ -60,4 +60,18 @@ class StatusConsultaService (
         return lista
     }
 
+    fun buscarPorId(id: Int): StatusConsulta? {
+        return statusRepository.findById(id).orElse(null)
+    }
+    fun atualizarStatus(id: Int, novoStatus: String): StatusConsulta? {
+        val statusExistente = statusRepository.findById(id)
+        if (statusExistente.isPresent) {
+            val statusConsulta = statusExistente.get()
+            statusConsulta.nomeStatus = novoStatus
+            statusRepository.save(statusConsulta)
+            return statusConsulta
+        }
+        return null
+    }
+
 }
