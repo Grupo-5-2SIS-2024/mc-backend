@@ -10,6 +10,9 @@ interface PacienteRepository: JpaRepository<Paciente, Int> {
     fun findByEmail(email: String): Paciente?
 
     fun existsByEmail(email: String?): Boolean
+    
+    // Busca todos os pacientes ordenados alfabeticamente por nome e sobrenome
+    fun findAllByOrderByNomeAscSobrenomeAsc(): List<Paciente>
 
     @Query("""
     SELECT 

@@ -66,14 +66,14 @@ class MedicoService(
 
 
     fun getLista():List<Medico> {
-        val lista = medicoRepository.findAllByAtivoTrue()
+        val lista = medicoRepository.findAllByAtivoTrueOrderByNomeAscSobrenomeAsc()
         validarLista(lista)
 
         return lista
     }
 
     fun getListaTodos(): List<Medico> {
-        val lista = medicoRepository.findAll()
+        val lista = medicoRepository.findAllByOrderByNomeAscSobrenomeAsc()
         validarLista(lista)
         return lista
     }

@@ -113,7 +113,7 @@ class PacienteService(
     }
 
     fun getLista(): List<Paciente> {
-        val lista = pacienteRepository.findAll().filter { it.ativo }
+        val lista = pacienteRepository.findAllByOrderByNomeAscSobrenomeAsc().filter { it.ativo }
         validarLista(lista)
         return lista
     }
@@ -164,6 +164,6 @@ class PacienteService(
     }
 
     fun listarTodosPacientes(): List<Paciente> {
-        return pacienteRepository.findAll()
+        return pacienteRepository.findAllByOrderByNomeAscSobrenomeAsc()
     }
 }
