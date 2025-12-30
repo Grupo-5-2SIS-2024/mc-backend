@@ -100,4 +100,12 @@ class PacienteController(
         return ResponseEntity.ok().build()
     }
 
+    @PutMapping("/{pacienteId}/responsavel/{responsavelId}")
+    fun vincularResponsavel(
+        @PathVariable pacienteId: Int,
+        @PathVariable responsavelId: Int
+    ): ResponseEntity<Void> {
+        pacienteService.vincularResponsavel(pacienteId, responsavelId)
+        return ResponseEntity.noContent().build()
+    }
 }

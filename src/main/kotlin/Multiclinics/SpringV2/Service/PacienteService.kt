@@ -8,6 +8,7 @@ import Multiclinics.SpringV2.dto.PacienteMedicoDto
 import Multiclinics.SpringV2.dto.PacienteSemResponsavel
 import Multiclinics.SpringV2.repository.EnderecoRespository
 import Multiclinics.SpringV2.repository.PacienteRepository
+import Multiclinics.SpringV2.repository.ResponsavelRepository
 import org.modelmapper.ModelMapper
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
@@ -23,8 +24,8 @@ class PacienteService(
     val pacienteRepository: PacienteRepository,
     val enderecoService: EnderecoService,
     val responsavelService: ResponsavelService,
-    val modelMapper: ModelMapper = ModelMapper(),
-
+    val responsavelRepository: ResponsavelRepository,
+    val modelMapper: ModelMapper
 ) {
     //@PersistenceContext
     //private lateinit var entityManager: EntityManager
@@ -56,10 +57,8 @@ class PacienteService(
     }
 
     fun salvarSemResponsavel(novoPaciente: PacienteSemResponsavel): Paciente {
-
-        // mapeando dto para dominio para poder cadastrar no banco (a dominio não tem o cep)
         val pacienteDominio = modelMapper.map(novoPaciente, Paciente::class.java)
-        pacienteDominio.responsavel = null
+        pacienteDominio.responsaveis = mutableListOf()
 
         // verifica se o email existe, caso existe, retorna conflito
         if (pacienteRepository.existsByEmail(pacienteDominio.email)) {
@@ -68,11 +67,11 @@ class PacienteService(
 
         // salve o paciente já com o endereço vinculado
 
-        var endereco = novoPaciente.endereco!!
+        val endereco = novoPaciente.endereco!!
         novoPaciente.endereco = enderecoService.criar(endereco)
         pacienteDominio.endereco = novoPaciente.endereco
 
-        var oi = pacienteRepository.save(pacienteDominio)
+        val oi = pacienteRepository.save(pacienteDominio)
 
         return oi
 
@@ -175,6 +174,19 @@ class PacienteService(
             pacienteRepository.save(pacienteInativado)
         } else {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente não encontrado")
+        }
+    }
+
+    fun vincularResponsavel(pacienteId: Int, responsavelId: Int) {
+        val paciente = pacienteRepository.findById(pacienteId)
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
+
+        val responsavel = responsavelRepository.findById(responsavelId)
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
+
+        if (!paciente.responsaveis.contains(responsavel)) {
+            paciente.responsaveis.add(responsavel)
+            pacienteRepository.save(paciente)
         }
     }
 }
