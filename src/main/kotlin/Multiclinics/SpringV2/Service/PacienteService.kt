@@ -8,6 +8,7 @@ import Multiclinics.SpringV2.dto.PacienteMedicoDto
 import Multiclinics.SpringV2.dto.PacienteSemResponsavel
 import Multiclinics.SpringV2.repository.EnderecoRespository
 import Multiclinics.SpringV2.repository.PacienteRepository
+import Multiclinics.SpringV2.repository.ResponsavelRepository
 import org.modelmapper.ModelMapper
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
@@ -23,6 +24,7 @@ class PacienteService(
     val pacienteRepository: PacienteRepository,
     val enderecoService: EnderecoService,
     val responsavelService: ResponsavelService,
+    val responsavelRepository: ResponsavelRepository,
     val modelMapper: ModelMapper = ModelMapper(),
 
 ) {
@@ -59,7 +61,8 @@ class PacienteService(
 
         // mapeando dto para dominio para poder cadastrar no banco (a dominio não tem o cep)
         val pacienteDominio = modelMapper.map(novoPaciente, Paciente::class.java)
-        pacienteDominio.responsavel = null
+        pacienteDominio.responsaveis.clear()
+
 
         // verifica se o email existe, caso existe, retorna conflito
         if (pacienteRepository.existsByEmail(pacienteDominio.email)) {
@@ -166,4 +169,17 @@ class PacienteService(
     fun listarTodosPacientes(): List<Paciente> {
         return pacienteRepository.findAllByOrderByNomeAscSobrenomeAsc()
     }
+    fun vincularResponsavel(pacienteId: Int, responsavelId: Int) {
+        val paciente = pacienteRepository.findById(pacienteId)
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
+
+        val responsavel = responsavelRepository.findById(responsavelId)
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
+
+        if (!paciente.responsaveis.contains(responsavel)) {
+            paciente.responsaveis.add(responsavel)
+            pacienteRepository.save(paciente)
+        }
+    }
+
 }

@@ -45,7 +45,7 @@ interface PacienteRepository: JpaRepository<Paciente, Int> {
     SELECT 
         (COUNT(DISTINCT p.id) * 100.0 / (SELECT COUNT(p2) FROM Paciente p2)) 
     FROM Paciente p 
-    WHERE p.responsavel IS NOT NULL 
+    WHERE p.responsaveis  IS NOT EMPTY 
     AND (SELECT COUNT(DISTINCT c.especificacaoMedica) 
          FROM Consulta c 
          WHERE c.paciente.id = p.id) > 1

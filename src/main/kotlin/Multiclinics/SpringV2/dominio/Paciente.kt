@@ -23,9 +23,14 @@ data class Paciente(
    @field:Column(length = 10 * 1024 * 1024)
    var foto:String? = null,
 
-   @ManyToOne(fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.MERGE])
-   @JoinColumn(name = "responsavel", nullable = true)
-   var responsavel: Responsavel? = null,
+   @ManyToMany
+   @JoinTable(
+      name = "paciente_responsavel",
+      joinColumns = [JoinColumn(name = "paciente_id")],
+      inverseJoinColumns = [JoinColumn(name = "responsavel_id")]
+   )
+   var responsaveis: MutableList<Responsavel> = mutableListOf(),
+
 
    @ManyToOne
    var endereco: Endereco? = null,

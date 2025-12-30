@@ -64,4 +64,5 @@ class ResponsavelService(
     fun buscarPorCpf(cpf: String): Responsavel? {
         return responsavelRepository.findByCpf(cpf)
     }
+    
 }
