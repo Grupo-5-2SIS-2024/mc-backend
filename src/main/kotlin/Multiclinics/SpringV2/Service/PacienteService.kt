@@ -166,4 +166,15 @@ class PacienteService(
     fun listarTodosPacientes(): List<Paciente> {
         return pacienteRepository.findAllByOrderByNomeAscSobrenomeAsc()
     }
+
+    fun inativarPaciente(id: Int) {
+        val paciente = pacienteRepository.findById(id)
+        if (paciente.isPresent) {
+            val pacienteInativado = paciente.get()
+            pacienteInativado.ativo = false
+            pacienteRepository.save(pacienteInativado)
+        } else {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente não encontrado")
+        }
+    }
 }

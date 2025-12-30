@@ -96,4 +96,15 @@ class MedicoService(
         return medicoRepository.obterDadosGraficoGeral()
     }
 
+    fun inativarMedico(id: Int) {
+        val medico = medicoRepository.findById(id)
+        if (medico.isPresent) {
+            val medicoInativado = medico.get()
+            medicoInativado.ativo = false
+            medicoRepository.save(medicoInativado)
+        } else {
+            throw ResponseStatusException(HttpStatusCode.valueOf(404), "Médico não encontrado")
+        }
+    }
+
 }

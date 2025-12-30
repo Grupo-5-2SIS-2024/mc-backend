@@ -94,4 +94,10 @@ class PacienteController(
         return ResponseEntity.ok(pacientes)
     }
 
+    @PatchMapping("/{id}/inativar")
+    fun inativarPaciente(@PathVariable id: Int): ResponseEntity<Any> {
+        pacienteService.inativarPaciente(id)
+        return ResponseEntity.ok().build()
+    }
+
 }

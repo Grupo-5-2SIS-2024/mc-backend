@@ -113,4 +113,10 @@ class MedicoController(
         return ResponseEntity.ok(dadosGrafico)
     }
 
+    @PatchMapping("/{id}/inativar")
+    fun inativarMedico(@PathVariable id: Int): ResponseEntity<Any> {
+        medicoService.inativarMedico(id)
+        return ResponseEntity.ok().build()
+    }
+
 }
