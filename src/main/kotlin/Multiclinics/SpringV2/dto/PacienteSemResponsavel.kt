@@ -38,5 +38,9 @@ class PacienteSemResponsavel(
     @field:Column(length = 10 * 1024 * 1024)
     var foto:String? = null,
 
-    open var endereco: Endereco? = null
+    var cep: String?,
+    var logradouro: String?,
+    var complemento: String?,
+    var bairro: String?,
+    var numero: String?
 )

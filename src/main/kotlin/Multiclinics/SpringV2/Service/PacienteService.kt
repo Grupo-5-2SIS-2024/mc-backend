@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDate
 import jakarta.persistence.EntityManager
@@ -39,42 +40,44 @@ class PacienteService(
 
         // mapeando dto para dominio para poder cadastrar no banco (a dominio não tem o cep)
         val pacienteDominio = modelMapper.map(novoPaciente, Paciente::class.java)
-      //  pacienteDominio.responsavel = pacienteDominio.responsavel?.let {entityManager.merge(it) }
+        //  pacienteDominio.responsavel = pacienteDominio.responsavel?.let {entityManager.merge(it) }
         // verifica se o email existe, caso existe, retorna conflito
 
         if (pacienteRepository.existsByEmail(pacienteDominio.email)) {
             throw ResponseStatusException(HttpStatus.CONFLICT)
         }
 
+        // Se um endereço for fornecido, crie-o e vincule-o ao paciente
+        novoPaciente.endereco?.let { endereco ->
+            pacienteDominio.endereco = enderecoService.criar(endereco)
+        }
 
-        var endereco = novoPaciente.endereco!!
-        novoPaciente.endereco = enderecoService.criar(endereco)
-        pacienteDominio.endereco = novoPaciente.endereco
-        // salve o paciente já com o endereço vinculado
-        var oi =  pacienteRepository.save(pacienteDominio)
-         return oi
-
+        return pacienteRepository.save(pacienteDominio)
     }
 
+    @Transactional
     fun salvarSemResponsavel(novoPaciente: PacienteSemResponsavel): Paciente {
         val pacienteDominio = modelMapper.map(novoPaciente, Paciente::class.java)
-        pacienteDominio.responsaveis = mutableListOf()
 
         // verifica se o email existe, caso existe, retorna conflito
         if (pacienteRepository.existsByEmail(pacienteDominio.email)) {
             throw ResponseStatusException(HttpStatus.CONFLICT)
         }
 
-        // salve o paciente já com o endereço vinculado
+        // Se um cep for fornecido, cria e salva o endereço
+        if (!novoPaciente.cep.isNullOrBlank()) {
+            val novoEndereco = Endereco(
+                id = null,
+                cep = novoPaciente.cep,
+                logradouro = novoPaciente.logradouro,
+                complemento = novoPaciente.complemento,
+                bairro = novoPaciente.bairro,
+                numero = novoPaciente.numero
+            )
+            pacienteDominio.endereco = enderecoService.criar(novoEndereco)
+        }
 
-        val endereco = novoPaciente.endereco!!
-        novoPaciente.endereco = enderecoService.criar(endereco)
-        pacienteDominio.endereco = novoPaciente.endereco
-
-        val oi = pacienteRepository.save(pacienteDominio)
-
-        return oi
-
+        return pacienteRepository.save(pacienteDominio)
     }
 
 
