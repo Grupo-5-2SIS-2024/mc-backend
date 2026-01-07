@@ -4,6 +4,7 @@ import Multiclinics.SpringV2.dominio.Paciente
 import Multiclinics.SpringV2.dto.PacienteMedicoDto
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 
 interface PacienteRepository: JpaRepository<Paciente, Int> {
 
@@ -74,4 +75,13 @@ interface PacienteRepository: JpaRepository<Paciente, Int> {
     WHERE c.datahoraConsulta < CURRENT_TIMESTAMP
 """)
     fun contarAgendamentosVencidos(): Long
+
+    @Query("""
+    SELECT DISTINCT p
+    FROM Paciente p
+    JOIN p.responsaveis r
+    WHERE LOWER(r.nome) LIKE LOWER(CONCAT('%', :nome, '%'))
+""")
+    fun findPacientesByNomeResponsavel(@Param("nome") nome: String): List<Paciente>
+
 }

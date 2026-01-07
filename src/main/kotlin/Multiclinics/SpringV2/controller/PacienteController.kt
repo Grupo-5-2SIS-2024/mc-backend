@@ -108,4 +108,11 @@ class PacienteController(
         pacienteService.vincularResponsavel(pacienteId, responsavelId)
         return ResponseEntity.noContent().build()
     }
+
+    @GetMapping("/por-responsavel")
+    fun listarPorNomeResponsavel(@RequestParam nome: String): ResponseEntity<List<Paciente>> {
+        val lista = pacienteRepository.findPacientesByNomeResponsavel(nome)
+        return ResponseEntity.ok(lista)
+    }
+
 }

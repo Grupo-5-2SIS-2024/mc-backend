@@ -1,5 +1,6 @@
 package Multiclinics.SpringV2
 
+import org.modelmapper.ModelMapper
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.cors.CorsConfiguration
@@ -21,4 +22,7 @@ class CorsConfig {
         source.registerCorsConfiguration("/**", config)
         return CorsFilter(source)
     }
+
+    @Bean
+    fun modelMapper(): ModelMapper = ModelMapper()
 }
