@@ -18,7 +18,6 @@ class PacienteSemResponsavel(
     @field:Email(message = "O email fornecido não é válido.")
     var email: String?,
 
-    @field:NotBlank(message = "O CPF não pode estar em branco.")
     @field:CPF(message = "O CPF fornecido não é válido.")
     var cpf: String?,
 

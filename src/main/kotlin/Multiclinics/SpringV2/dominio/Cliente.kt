@@ -26,7 +26,6 @@ abstract class Cliente (
     @Column(length = 45)
     open var email: String? = null,
 
-    @NotBlank
     @CPF
     @Column(length = 11, columnDefinition = "CHAR(11)")
     open var cpf: String? = null,
