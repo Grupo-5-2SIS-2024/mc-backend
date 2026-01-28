@@ -41,5 +41,6 @@ class PacienteSemResponsavel(
     var logradouro: String?,
     var complemento: String?,
     var bairro: String?,
-    var numero: String?
+    var numero: String?,
+    var ativo: Boolean = true
 )

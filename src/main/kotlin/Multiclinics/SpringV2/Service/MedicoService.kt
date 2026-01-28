@@ -107,4 +107,15 @@ class MedicoService(
         }
     }
 
+    fun ativarMedico(id: Int) {
+        val medico = medicoRepository.findById(id)
+        if (medico.isPresent) {
+            val medicoAtivado = medico.get()
+            medicoAtivado.ativo = true
+            medicoRepository.save(medicoAtivado)
+        } else {
+            throw ResponseStatusException(HttpStatusCode.valueOf(404), "Médico não encontrado")
+        }
+    }
+
 }

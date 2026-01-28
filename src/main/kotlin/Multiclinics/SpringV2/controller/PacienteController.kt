@@ -100,6 +100,12 @@ class PacienteController(
         return ResponseEntity.ok().build()
     }
 
+    @PatchMapping("/{id}/ativar")
+    fun ativarPaciente(@PathVariable id: Int): ResponseEntity<Any> {
+        pacienteService.ativarPaciente(id)
+        return ResponseEntity.ok().build()
+    }
+
     @PutMapping("/{pacienteId}/responsavel/{responsavelId}")
     fun vincularResponsavel(
         @PathVariable pacienteId: Int,

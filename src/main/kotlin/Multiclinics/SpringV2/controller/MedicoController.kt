@@ -119,4 +119,10 @@ class MedicoController(
         return ResponseEntity.ok().build()
     }
 
+    @PatchMapping("/{id}/ativar")
+    fun ativarMedico(@PathVariable id: Int): ResponseEntity<Any> {
+        medicoService.ativarMedico(id)
+        return ResponseEntity.ok().build()
+    }
+
 }

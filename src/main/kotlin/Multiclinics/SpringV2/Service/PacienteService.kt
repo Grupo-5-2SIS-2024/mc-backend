@@ -180,6 +180,17 @@ class PacienteService(
         }
     }
 
+    fun ativarPaciente(id: Int) {
+        val paciente = pacienteRepository.findById(id)
+        if (paciente.isPresent) {
+            val pacienteAtivado = paciente.get()
+            pacienteAtivado.ativo = true
+            pacienteRepository.save(pacienteAtivado)
+        } else {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente não encontrado")
+        }
+    }
+
     fun vincularResponsavel(pacienteId: Int, responsavelId: Int) {
         val paciente = pacienteRepository.findById(pacienteId)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }

@@ -43,5 +43,7 @@ data class PacienteComResponsavel (
     @Column(length = 15)
     var cns: String?,
 
-    open var endereco: Endereco? = null
+    open var endereco: Endereco? = null,
+
+    var ativo: Boolean = true
 )
