@@ -54,7 +54,7 @@ class Medico(
     var cpf: String? = null,
 
     @NotNull
-    var ativo: Boolean = false,
+    var ativo: Boolean = true,
 
     @ManyToOne
     @JoinColumn(name = "permissionamento")
