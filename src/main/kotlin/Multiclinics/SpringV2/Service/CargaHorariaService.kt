@@ -3,6 +3,7 @@ import Multiclinics.SpringV2.dominio.CargaHoraria
 import Multiclinics.SpringV2.dto.CargaHorariaRequest
 import Multiclinics.SpringV2.repository.CargaHorariaRepository
 import Multiclinics.SpringV2.repository.MedicoRepository
+import jakarta.transaction.Transactional
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -11,12 +12,18 @@ class CargaHorariaService(
     val cargaHorariaRepository: CargaHorariaRepository,
     val medicoRepository: MedicoRepository
 ) {
-    fun salvarEmLoteDto(medicoId: Int, lista: List<CargaHorariaRequest>) {
+    @Transactional
+    fun substituirEmLoteDto(medicoId: Int, lista: List<CargaHorariaRequest>) {
         val medico = medicoRepository.findById(medicoId)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
-        val entidades = lista.map {
-            if (it.horaInicio >= it.horaFim) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
 
+        lista.forEach {
+            if (it.horaInicio >= it.horaFim) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        }
+
+        cargaHorariaRepository.deleteByMedicoId(medicoId)
+
+        val entidades = lista.map {
             CargaHoraria(
                 diaSemana = it.diaSemana,
                 horaInicio = it.horaInicio,
@@ -27,6 +34,13 @@ class CargaHorariaService(
 
         cargaHorariaRepository.saveAll(entidades)
     }
+
+    @Transactional
+    fun deletarPorMedico(medicoId: Int) {
+        // Se não existir nada, ok
+        cargaHorariaRepository.deleteByMedicoId(medicoId)
+    }
+
 
 
     fun listarPorMedico(medicoId: Int): List<CargaHoraria> {

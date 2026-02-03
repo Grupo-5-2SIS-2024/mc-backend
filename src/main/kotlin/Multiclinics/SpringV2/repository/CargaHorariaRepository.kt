@@ -13,4 +13,6 @@ interface CargaHorariaRepository: JpaRepository<CargaHoraria, Int> {
         horaInicio: LocalTime,
         horaFim: LocalTime
     ): Boolean
+    fun deleteByMedicoId(medicoId: Int): Long
+
 }
