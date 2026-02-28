@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
 
 
 @RestController
@@ -157,6 +158,20 @@ class ConsultaController(
         val dataFim = dataInicio.plusDays(6)
         val consultasSemana = consultaService.buscarPorIntervalo(dataInicio, dataFim)
         return ResponseEntity.ok(consultasSemana)
+    }
+
+
+
+    @GetMapping("/disponiveis")
+    fun horariosDisponiveis(
+        @RequestParam medicoId: Int,
+        @RequestParam data: String,
+        @RequestParam duracaoMin: Int,
+        @RequestParam(required = false) pacienteId: Int?
+    ): ResponseEntity<Map<String, Any>> {
+        val d = LocalDate.parse(data)
+        val lista = consultaService.listarHorariosDisponiveis(medicoId, d, duracaoMin, pacienteId)
+        return ResponseEntity.ok(mapOf("horarios" to lista))
     }
 
 

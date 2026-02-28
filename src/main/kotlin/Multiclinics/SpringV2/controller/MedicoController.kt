@@ -23,8 +23,6 @@ class MedicoController(
         val medicoLogado = medicoRepository.findByEmailAndSenha(medico.email ?: "", medico.senha ?: "")
 
         return if (medicoLogado != null) {
-            medicoLogado.ativo = true
-            medicoRepository.save(medicoLogado) // Atualiza o médico como ativo no repositório
             ResponseEntity.ok(medicoLogado)
         } else {
             ResponseEntity.status(401).build()
@@ -36,10 +34,7 @@ class MedicoController(
     fun deslogarMedico(@RequestBody medico: Medico): ResponseEntity<Medico> {
         val medicoLogado = medicoRepository.findByEmail(medico.email ?: "")
 
-        return if (medicoLogado != null && medicoLogado.ativo) {
-            // Marca o médico como inativo
-            medicoLogado.ativo = false
-            medicoRepository.save(medicoLogado) // Atualiza o médico como inativo no repositório
+        return if (medicoLogado != null) {
             ResponseEntity.ok().build()
         } else {
             ResponseEntity.status(401).build()

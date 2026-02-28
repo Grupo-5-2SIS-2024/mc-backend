@@ -17,9 +17,23 @@ class CargaHorariaController(
         @PathVariable id: Int,
         @RequestBody lista: List<CargaHorariaRequest>
     ) {
-        service.salvarEmLoteDto(id, lista)
+        service.substituirEmLoteDto(id, lista)
     }
 
+
+    @PutMapping("/medico/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun substituir(
+        @PathVariable id: Int,
+        @RequestBody lista: List<CargaHorariaRequest>
+    ) {
+        service.substituirEmLoteDto(id, lista)
+    }
+    @DeleteMapping("/medico/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun deletarPorMedico(@PathVariable id: Int) {
+        service.deletarPorMedico(id)
+    }
 
     @GetMapping("/medico/{id}")
     fun listar(@PathVariable id: Int): List<CargaHoraria> {

@@ -10,6 +10,7 @@ import Multiclinics.SpringV2.dto.PacienteSemResponsavel
 import Multiclinics.SpringV2.repository.EnderecoRespository
 import Multiclinics.SpringV2.repository.PacienteRepository
 import Multiclinics.SpringV2.repository.ResponsavelRepository
+import Multiclinics.SpringV2.repository.PlanoRepository
 import org.modelmapper.ModelMapper
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
@@ -27,6 +28,7 @@ class PacienteService(
     val enderecoService: EnderecoService,
     val responsavelService: ResponsavelService,
     val responsavelRepository: ResponsavelRepository,
+    val planoRepository: PlanoRepository,
     val modelMapper: ModelMapper
 ) {
     //@PersistenceContext

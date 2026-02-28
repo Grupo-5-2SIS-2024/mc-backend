@@ -35,6 +35,10 @@ data class Paciente(
    @ManyToOne
    var endereco: Endereco? = null,
 
+   @ManyToOne
+   @JoinColumn(name = "plano_id")
+   var plano: Plano? = null,
+
    @Column(nullable = false)
    var ativo: Boolean = true
 ):Cliente(){

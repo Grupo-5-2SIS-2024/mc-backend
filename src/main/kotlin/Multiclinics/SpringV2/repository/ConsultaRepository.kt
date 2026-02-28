@@ -115,5 +115,30 @@ interface ConsultaRepository : JpaRepository<Consulta, Int> {
     @Query("SELECT COUNT(c) FROM Consulta c WHERE c.statusConsulta.nomeStatus = 'Cancelada'")
     fun countCancelada(): Long
 
+    @Query("""
+    select c from Consulta c
+    where c.medico.id = :medicoId
+      and c.datahoraConsulta >= :ini
+      and c.datahoraConsulta < :fim
+      and (c.statusConsulta.id is null or c.statusConsulta.id <> 3)
+""")
+    fun findAtivasDoMedicoNoDia(
+        @Param("medicoId") medicoId: Int,
+        @Param("ini") ini: LocalDateTime,
+        @Param("fim") fim: LocalDateTime
+    ): List<Consulta>
+
+    @Query("""
+    select c from Consulta c
+    where c.paciente.id = :pacienteId
+      and c.datahoraConsulta >= :ini
+      and c.datahoraConsulta < :fim
+      and (c.statusConsulta.id is null or c.statusConsulta.id <> 3)
+""")
+    fun findAtivasDoPacienteNoDia(
+        @Param("pacienteId") pacienteId: Int,
+        @Param("ini") ini: LocalDateTime,
+        @Param("fim") fim: LocalDateTime
+    ): List<Consulta>
 
 }
