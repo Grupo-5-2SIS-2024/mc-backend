@@ -10,6 +10,7 @@ import java.time.LocalDateTime
 interface ConsultaRepository : JpaRepository<Consulta, Int> {
     fun findByMedicoNome(nome: String): List<Consulta>
     fun findByMedicoId(id: Int): List<Consulta>
+    fun findByDatahoraConsultaBetween(inicio: LocalDateTime, fim: LocalDateTime): List<Consulta>
 
     @Query("""
     SELECT 

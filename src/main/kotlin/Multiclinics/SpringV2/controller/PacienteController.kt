@@ -48,9 +48,14 @@ class PacienteController(
 
 
     @GetMapping
-    fun listarPaciente(): ResponseEntity<List<Paciente>> {
-        val pacientes = pacienteService.getLista()
-        return ResponseEntity.status(200).body(pacientes)
+    fun listarPaciente(@ModelAttribute filtro: Multiclinics.SpringV2.dto.PacienteFiltroRequest): ResponseEntity<Any> {
+        return if (filtro.page != null && filtro.size != null) {
+            val pacientes = pacienteService.listarPaginadoComFiltro(filtro)
+            ResponseEntity.ok(pacientes)
+        } else {
+            val pacientes = pacienteService.getLista()
+            ResponseEntity.status(200).body(pacientes)
+        }
     }
 
 
@@ -88,11 +93,7 @@ class PacienteController(
         return ResponseEntity.ok(agendamentosVencidos)
     }
 
-    @GetMapping("/todos")
-    fun listarTodosPacientes(): ResponseEntity<List<Paciente>> {
-        val pacientes = pacienteService.listarTodosPacientes()
-        return ResponseEntity.ok(pacientes)
-    }
+
 
     @PatchMapping("/{id}/inativar")
     fun inativarPaciente(@PathVariable id: Int): ResponseEntity<Any> {

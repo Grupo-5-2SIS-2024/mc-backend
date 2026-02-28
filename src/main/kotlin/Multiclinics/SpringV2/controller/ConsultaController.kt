@@ -148,5 +148,16 @@ class ConsultaController(
         return ResponseEntity.ok(consultaAtualizada)
     }
 
+    @GetMapping("/semana")
+    fun listarConsultasSemana(
+        @RequestParam inicio: String
+    ): ResponseEntity<List<Consulta>> {
+        // Espera-se o formato yyyy-MM-dd
+        val dataInicio = java.time.LocalDate.parse(inicio)
+        val dataFim = dataInicio.plusDays(6)
+        val consultasSemana = consultaService.buscarPorIntervalo(dataInicio, dataFim)
+        return ResponseEntity.ok(consultasSemana)
+    }
+
 
 }

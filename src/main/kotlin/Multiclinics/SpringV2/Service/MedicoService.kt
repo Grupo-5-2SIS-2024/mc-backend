@@ -118,4 +118,14 @@ class MedicoService(
         }
     }
 
+    fun listarPaginadoComFiltro(filtro: Multiclinics.SpringV2.dto.MedicoFiltroRequest): Any {
+        val page = filtro.page ?: 0
+        val size = filtro.size ?: 20
+        val pageable = org.springframework.data.domain.PageRequest.of(page, size)
+        return medicoRepository.findAll(
+            Multiclinics.SpringV2.repository.MedicoSpecification.filtrar(
+                filtro.nome, filtro.sobrenome, filtro.email, filtro.crm, filtro.especialidade, filtro.ativo
+            ), pageable
+        )
+    }
 }

@@ -4,6 +4,7 @@ package Multiclinics.SpringV2.Service
 import Multiclinics.SpringV2.dominio.Endereco
 import Multiclinics.SpringV2.dominio.Paciente
 import Multiclinics.SpringV2.dto.PacienteComResponsavel
+import Multiclinics.SpringV2.dto.PacienteFiltroRequest
 import Multiclinics.SpringV2.dto.PacienteMedicoDto
 import Multiclinics.SpringV2.dto.PacienteSemResponsavel
 import Multiclinics.SpringV2.repository.EnderecoRespository
@@ -202,5 +203,16 @@ class PacienteService(
             paciente.responsaveis.add(responsavel)
             pacienteRepository.save(paciente)
         }
+    }
+
+    fun listarPaginadoComFiltro(filtro: Multiclinics.SpringV2.dto.PacienteFiltroRequest): Any {
+        val page = filtro.page ?: 0
+        val size = filtro.size ?: 20
+        val pageable = org.springframework.data.domain.PageRequest.of(page, size)
+        return pacienteRepository.findAll(
+            Multiclinics.SpringV2.repository.PacienteSpecification.filtrar(
+                filtro.nome, filtro.sobrenome, filtro.email, filtro.cpf, filtro.genero, filtro.ativo
+            ), pageable
+        )
     }
 }

@@ -3,10 +3,11 @@ package Multiclinics.SpringV2.repository
 import Multiclinics.SpringV2.dominio.Medico
 import Multiclinics.SpringV2.dto.GraficoGeralAdm
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
 
 
-interface MedicoRepository: JpaRepository<Medico, Int> {
+interface MedicoRepository: JpaRepository<Medico, Int>, JpaSpecificationExecutor<Medico> {
 
    fun findByEmail(email: String): Medico?
 

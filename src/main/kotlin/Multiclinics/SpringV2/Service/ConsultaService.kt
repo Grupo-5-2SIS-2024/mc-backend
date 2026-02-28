@@ -250,4 +250,10 @@ class ConsultaService(
         return null
     }
 
+    fun buscarPorIntervalo(dataInicio: LocalDate, dataFim: LocalDate): List<Consulta> {
+        val dataHoraInicio = dataInicio.atStartOfDay()
+        val dataHoraFim = dataFim.atTime(23, 59, 59)
+        return consultaRepository.findByDatahoraConsultaBetween(dataHoraInicio, dataHoraFim)
+    }
+
 }

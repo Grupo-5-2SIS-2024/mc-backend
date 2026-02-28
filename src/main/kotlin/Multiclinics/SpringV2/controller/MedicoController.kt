@@ -73,16 +73,26 @@ class MedicoController(
 
 
     @GetMapping
-    fun listarMedicos(): ResponseEntity<List<Medico>> {
-        val medicos = medicoService.getLista()
-        return ResponseEntity.status(200).body(medicos)
+    fun listarMedicos(@ModelAttribute filtro: Multiclinics.SpringV2.dto.MedicoFiltroRequest): ResponseEntity<Any> {
+        return if (filtro.page != null && filtro.size != null) {
+            val medicos = medicoService.listarPaginadoComFiltro(filtro)
+            ResponseEntity.ok(medicos)
+        } else {
+            val medicos = medicoService.getLista()
+            ResponseEntity.status(200).body(medicos)
+        }
     }
 
 
     @GetMapping("/todos")
-    fun listarTodosMedicos(): ResponseEntity<List<Medico>> {
-        val medicos = medicoService.getListaTodos()
-        return ResponseEntity.status(200).body(medicos)
+    fun listarTodosMedicos(@ModelAttribute filtro: Multiclinics.SpringV2.dto.MedicoFiltroRequest): ResponseEntity<Any> {
+        return if (filtro.page != null && filtro.size != null) {
+            val medicos = medicoService.listarPaginadoComFiltro(filtro)
+            ResponseEntity.ok(medicos)
+        } else {
+            val medicos = medicoService.getListaTodos()
+            ResponseEntity.status(200).body(medicos)
+        }
     }
 
 
