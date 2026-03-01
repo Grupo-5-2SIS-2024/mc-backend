@@ -1,7 +1,8 @@
 package Multiclinics.SpringV2.controller
 
 import Multiclinics.SpringV2.Service.ConvenioService
-import Multiclinics.SpringV2.dominio.Convenio
+import Multiclinics.SpringV2.dto.ConvenioRequest
+import Multiclinics.SpringV2.dto.ConvenioResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -25,40 +26,40 @@ class ConvenioController(
     }
 
     @GetMapping
-    fun listarTodos(): ResponseEntity<List<Convenio>> {
+    fun listarTodos(): ResponseEntity<List<ConvenioResponse>> {
         val convenios = convenioService.listarTodos()
         return ResponseEntity.ok(convenios)
     }
 
     @GetMapping("/ativos")
-    fun listarAtivos(): ResponseEntity<List<Convenio>> {
+    fun listarAtivos(): ResponseEntity<List<ConvenioResponse>> {
         val convenios = convenioService.listarAtivos()
         return ResponseEntity.ok(convenios)
     }
 
     @GetMapping("/{id}")
-    fun buscarPorId(@PathVariable id: Int): ResponseEntity<Convenio> {
+    fun buscarPorId(@PathVariable id: Int): ResponseEntity<ConvenioResponse> {
         return convenioService.buscarPorId(id)
     }
 
     @PostMapping
     fun criar(
-        @RequestBody @Valid novoConvenio: Convenio,
+        @RequestBody @Valid request: ConvenioRequest,
         @RequestHeader("Nivel-Acesso", required = false) nivelAcesso: String?
-    ): ResponseEntity<Convenio> {
+    ): ResponseEntity<ConvenioResponse> {
         verificarPermissaoAdmin(nivelAcesso)
-        val convenioCriado = convenioService.criar(novoConvenio)
+        val convenioCriado = convenioService.criar(request)
         return ResponseEntity.status(201).body(convenioCriado)
     }
 
     @PutMapping("/{id}")
     fun atualizar(
         @PathVariable id: Int,
-        @RequestBody @Valid convenioAtualizado: Convenio,
+        @RequestBody @Valid request: ConvenioRequest,
         @RequestHeader("Nivel-Acesso", required = false) nivelAcesso: String?
-    ): ResponseEntity<Convenio> {
+    ): ResponseEntity<ConvenioResponse> {
         verificarPermissaoAdmin(nivelAcesso)
-        return convenioService.atualizar(id, convenioAtualizado)
+        return convenioService.atualizar(id, request)
     }
 
     @DeleteMapping("/{id}")

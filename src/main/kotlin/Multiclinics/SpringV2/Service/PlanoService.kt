@@ -1,11 +1,14 @@
 package Multiclinics.SpringV2.Service
 
 import Multiclinics.SpringV2.dominio.Plano
+import Multiclinics.SpringV2.dto.PlanoRequest
+import Multiclinics.SpringV2.dto.PlanoResponse
 import Multiclinics.SpringV2.repository.ConvenioRepository
 import Multiclinics.SpringV2.repository.PlanoRepository
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 
 @Service
@@ -20,25 +23,43 @@ class PlanoService(
         }
     }
 
-    fun criar(novoPlano: Plano, convenioId: Int): Plano {
+    private fun toResponse(plano: Plano): PlanoResponse {
+        return PlanoResponse(
+            id = plano.id,
+            nome = plano.nome,
+            descricao = plano.descricao,
+            ativo = plano.ativo
+        )
+    }
+
+    @Transactional
+    fun criar(request: PlanoRequest, convenioId: Int): PlanoResponse {
         val convenio = convenioRepository.findById(convenioId)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Convênio não encontrado") }
         
-        novoPlano.convenio = convenio
-        return planoRepository.save(novoPlano)
+        val plano = Plano(
+            nome = request.nome,
+            descricao = request.descricao,
+            ativo = request.ativo,
+            convenio = convenio
+        )
+        
+        val savedPlano = planoRepository.save(plano)
+        return toResponse(savedPlano)
     }
 
-    fun atualizar(id: Int, planoAtualizado: Plano): ResponseEntity<Plano> {
+    @Transactional
+    fun atualizar(id: Int, request: PlanoRequest): ResponseEntity<PlanoResponse> {
         val planoExistente = planoRepository.findById(id)
         return if (planoExistente.isPresent) {
             val plano = planoExistente.get()
             plano.apply {
-                nome = planoAtualizado.nome
-                descricao = planoAtualizado.descricao
-                ativo = planoAtualizado.ativo
+                nome = request.nome
+                descricao = request.descricao
+                ativo = request.ativo
             }
             val planoSalvo = planoRepository.save(plano)
-            ResponseEntity.ok(planoSalvo)
+            ResponseEntity.ok(toResponse(planoSalvo))
         } else {
             ResponseEntity.status(HttpStatus.NOT_FOUND).build()
         }
@@ -51,28 +72,28 @@ class PlanoService(
         planoRepository.deleteById(id)
     }
 
-    fun listarTodos(): List<Plano> {
+    fun listarTodos(): List<PlanoResponse> {
         val lista = planoRepository.findAll()
         validarLista(lista)
-        return lista
+        return lista.map { toResponse(it) }
     }
 
-    fun listarPorConvenio(convenioId: Int): List<Plano> {
+    fun listarPorConvenio(convenioId: Int): List<PlanoResponse> {
         val lista = planoRepository.findByConvenioId(convenioId)
         validarLista(lista)
-        return lista
+        return lista.map { toResponse(it) }
     }
 
-    fun listarAtivosPorConvenio(convenioId: Int): List<Plano> {
+    fun listarAtivosPorConvenio(convenioId: Int): List<PlanoResponse> {
         val lista = planoRepository.findPlanosAtivosByConvenioId(convenioId)
         validarLista(lista)
-        return lista
+        return lista.map { toResponse(it) }
     }
 
-    fun buscarPorId(id: Int): ResponseEntity<Plano> {
+    fun buscarPorId(id: Int): ResponseEntity<PlanoResponse> {
         val plano = planoRepository.findById(id)
         return if (plano.isPresent) {
-            ResponseEntity.ok(plano.get())
+            ResponseEntity.ok(toResponse(plano.get()))
         } else {
             ResponseEntity.status(HttpStatus.NOT_FOUND).build()
         }

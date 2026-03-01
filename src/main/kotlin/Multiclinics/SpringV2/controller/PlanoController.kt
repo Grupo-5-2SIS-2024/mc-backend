@@ -1,7 +1,8 @@
 package Multiclinics.SpringV2.controller
 
 import Multiclinics.SpringV2.Service.PlanoService
-import Multiclinics.SpringV2.dominio.Plano
+import Multiclinics.SpringV2.dto.PlanoRequest
+import Multiclinics.SpringV2.dto.PlanoResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -27,45 +28,45 @@ class PlanoController(
     @PostMapping("/convenio/{convenioId}")
     fun criar(
         @PathVariable convenioId: Int,
-        @RequestBody @Valid novoPlano: Plano,
+        @RequestBody @Valid request: PlanoRequest,
         @RequestHeader("Nivel-Acesso", required = false) nivelAcesso: String?
-    ): ResponseEntity<Plano> {
+    ): ResponseEntity<PlanoResponse> {
         verificarPermissaoAdmin(nivelAcesso)
-        val planoCriado = planoService.criar(novoPlano, convenioId)
+        val planoCriado = planoService.criar(request, convenioId)
         return ResponseEntity.status(201).body(planoCriado)
     }
 
     @GetMapping
-    fun listarTodos(): ResponseEntity<List<Plano>> {
+    fun listarTodos(): ResponseEntity<List<PlanoResponse>> {
         val planos = planoService.listarTodos()
         return ResponseEntity.ok(planos)
     }
 
     @GetMapping("/convenio/{convenioId}")
-    fun listarPorConvenio(@PathVariable convenioId: Int): ResponseEntity<List<Plano>> {
+    fun listarPorConvenio(@PathVariable convenioId: Int): ResponseEntity<List<PlanoResponse>> {
         val planos = planoService.listarPorConvenio(convenioId)
         return ResponseEntity.ok(planos)
     }
 
     @GetMapping("/convenio/{convenioId}/ativos")
-    fun listarAtivosPorConvenio(@PathVariable convenioId: Int): ResponseEntity<List<Plano>> {
+    fun listarAtivosPorConvenio(@PathVariable convenioId: Int): ResponseEntity<List<PlanoResponse>> {
         val planos = planoService.listarAtivosPorConvenio(convenioId)
         return ResponseEntity.ok(planos)
     }
 
     @GetMapping("/{id}")
-    fun buscarPorId(@PathVariable id: Int): ResponseEntity<Plano> {
+    fun buscarPorId(@PathVariable id: Int): ResponseEntity<PlanoResponse> {
         return planoService.buscarPorId(id)
     }
 
     @PutMapping("/{id}")
     fun atualizar(
         @PathVariable id: Int,
-        @RequestBody @Valid planoAtualizado: Plano,
+        @RequestBody @Valid request: PlanoRequest,
         @RequestHeader("Nivel-Acesso", required = false) nivelAcesso: String?
-    ): ResponseEntity<Plano> {
+    ): ResponseEntity<PlanoResponse> {
         verificarPermissaoAdmin(nivelAcesso)
-        return planoService.atualizar(id, planoAtualizado)
+        return planoService.atualizar(id, request)
     }
 
     @DeleteMapping("/{id}")

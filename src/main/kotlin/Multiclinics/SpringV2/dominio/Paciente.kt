@@ -35,8 +35,8 @@ data class Paciente(
    @ManyToOne
    var endereco: Endereco? = null,
 
-   @ManyToOne
-   @JoinColumn(name = "plano_id")
+   @ManyToOne(fetch = FetchType.EAGER)
+   @JoinColumn(name = "plano_id", nullable = true)
    var plano: Plano? = null,
 
    @Column(nullable = false)
