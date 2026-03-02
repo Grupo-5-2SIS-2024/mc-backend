@@ -39,6 +39,7 @@ class PacienteService(
         }
     }
 
+    @Transactional
     fun salvar(novoPaciente: PacienteComResponsavel): Paciente {
 
         // mapeando dto para dominio para poder cadastrar no banco (a dominio não tem o cep)
@@ -53,6 +54,13 @@ class PacienteService(
         // Se um endereço for fornecido, crie-o e vincule-o ao paciente
         novoPaciente.endereco?.let { endereco ->
             pacienteDominio.endereco = enderecoService.criar(endereco)
+        }
+
+        // Se um plano for fornecido, busca do banco e vincula
+        novoPaciente.plano?.id?.let { planoId ->
+            val plano = planoRepository.findById(planoId)
+                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Plano não encontrado") }
+            pacienteDominio.plano = plano
         }
 
         return pacienteRepository.save(pacienteDominio)
@@ -78,6 +86,13 @@ class PacienteService(
                 numero = novoPaciente.numero
             )
             pacienteDominio.endereco = enderecoService.criar(novoEndereco)
+        }
+
+        // Se um plano for fornecido, busca do banco e vincula
+        novoPaciente.plano?.id?.let { planoId ->
+            val plano = planoRepository.findById(planoId)
+                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Plano não encontrado") }
+            pacienteDominio.plano = plano
         }
 
         return pacienteRepository.save(pacienteDominio)

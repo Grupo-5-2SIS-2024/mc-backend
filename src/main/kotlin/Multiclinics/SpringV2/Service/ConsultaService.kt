@@ -358,4 +358,14 @@ class ConsultaService(
         return disponiveis
     }
 
+    // Método para buscar consultas em um intervalo de datas
+    fun buscarPorIntervalo(inicio: LocalDate, fim: LocalDate): List<Consulta> {
+        val consultas = consultaRepository.findAll().filter { consulta ->
+            consulta.datahoraConsulta?.toLocalDate()?.let { data ->
+                !data.isBefore(inicio) && !data.isAfter(fim)
+            } ?: false
+        }
+        return consultas
+    }
+
 }

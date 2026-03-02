@@ -2,6 +2,7 @@ package Multiclinics.SpringV2.dto
 
 import Multiclinics.SpringV2.dominio.Endereco
 import Multiclinics.SpringV2.dominio.Responsavel
+import Multiclinics.SpringV2.dominio.Plano
 import jakarta.persistence.Column
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
@@ -45,5 +46,7 @@ data class PacienteComResponsavel (
 
     open var endereco: Endereco? = null,
 
-    var ativo: Boolean = true
+    var ativo: Boolean = true,
+    
+    var plano: Plano? = null
 )

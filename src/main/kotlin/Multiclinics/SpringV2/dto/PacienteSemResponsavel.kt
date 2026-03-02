@@ -1,6 +1,7 @@
 package Multiclinics.SpringV2.dto
 
 import Multiclinics.SpringV2.dominio.Endereco
+import Multiclinics.SpringV2.dominio.Plano
 import jakarta.persistence.Column
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
@@ -42,5 +43,7 @@ class PacienteSemResponsavel(
     var complemento: String?,
     var bairro: String?,
     var numero: String?,
-    var ativo: Boolean = true
+    var ativo: Boolean = true,
+    
+    var plano: Plano? = null
 )
