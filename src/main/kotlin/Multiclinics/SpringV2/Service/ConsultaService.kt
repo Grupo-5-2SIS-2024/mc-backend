@@ -16,11 +16,19 @@ import java.time.LocalDateTime
 import Multiclinics.SpringV2.dominio.DiaSemana
 import Multiclinics.SpringV2.repository.CargaHorariaRepository
 import java.time.LocalTime
+import Multiclinics.SpringV2.dto.ConsultaRecorrenteRequest
+import Multiclinics.SpringV2.dto.ConsultaRecorrenteResponse
+import Multiclinics.SpringV2.dto.ConsultaRecorrenteItemResult
+import Multiclinics.SpringV2.repository.EspecificacaoMedicaRepository
+import Multiclinics.SpringV2.repository.PacienteRepository
+import jakarta.transaction.Transactional
 
 @Service
 class ConsultaService(
     val consultaRepository: ConsultaRepository,
     val medicoRepository: MedicoRepository,
+    val pacienteRepository: PacienteRepository,
+    val especificacaoMedicaRepository: EspecificacaoMedicaRepository,
     private val statusConsultaService: StatusConsultaService, // Adiciona a dependência
     private val cargaHorariaRepository: CargaHorariaRepository
 ) {
@@ -366,6 +374,101 @@ class ConsultaService(
             } ?: false
         }
         return consultas
+    }
+
+
+    @Transactional
+    fun salvarRecorrentes(req: ConsultaRecorrenteRequest): ConsultaRecorrenteResponse {
+        if (!medicoRepository.existsById(req.medicoId)) {
+            throw ResponseStatusException(HttpStatusCode.valueOf(404), "Médico não encontrado")
+        }
+
+        val durMin = req.duracaoMin
+        if (durMin !in listOf(30, 50, 60)) {
+            throw ResponseStatusException(HttpStatusCode.valueOf(400), "Duração inválida")
+        }
+
+        val dataInicial = LocalDate.parse(req.dataInicial)
+        val hora = LocalTime.parse(req.hora)
+        val descricaoFinal = (req.descricao ?: "Sem descrição").trim()
+
+        val medicoRef = medicoRepository.getReferenceById(req.medicoId)
+        val pacienteRef = pacienteRepository.getReferenceById(req.pacienteId)
+        val especRef = especificacaoMedicaRepository.getReferenceById(req.especificacaoMedicaId)
+        val statusRef = statusConsultaService.buscarPorId(req.statusConsultaId)
+            ?: throw ResponseStatusException(HttpStatusCode.valueOf(404), "Status não encontrado")
+
+        val itens = mutableListOf<ConsultaRecorrenteItemResult>()
+        var created = 0
+        var skipped = 0
+        var errors = 0
+
+        for (i in 0 until req.semanas.coerceAtLeast(1)) {
+            val data = dataInicial.plusDays((i * 7).toLong())
+            val ini = LocalDateTime.of(data, hora)
+            val fim = ini.plusMinutes(durMin.toLong())
+
+            try {
+                val qtd = consultaRepository.countAtivasDoMedicoOuPacienteNoIntervalo(
+                    req.medicoId, req.pacienteId, ini, fim
+                )
+                if (qtd > 0) {
+                    skipped += 1
+                    itens.add(
+                        ConsultaRecorrenteItemResult(
+                            data = data.toString(),
+                            hora = req.hora,
+                            status = "SKIPPED_CONFLICT",
+                            consultaId = null,
+                            motivo = "Conflito de agenda para médico ou paciente"
+                        )
+                    )
+                    continue
+                }
+
+                val consulta = Consulta(
+                    id = null,
+                    datahoraConsulta = ini,
+                    descricao = descricaoFinal,
+                    medico = medicoRef,
+                    especificacaoMedica = especRef,
+                    statusConsulta = statusRef,
+                    paciente = pacienteRef,
+                    duracaoConsulta = LocalTime.of(durMin / 60, durMin % 60)
+                )
+
+                val saved = consultaRepository.save(consulta)
+                created += 1
+
+                itens.add(
+                    ConsultaRecorrenteItemResult(
+                        data = data.toString(),
+                        hora = req.hora,
+                        status = "CREATED",
+                        consultaId = saved.id,
+                        motivo = null
+                    )
+                )
+            } catch (e: Exception) {
+                errors += 1
+                itens.add(
+                    ConsultaRecorrenteItemResult(
+                        data = data.toString(),
+                        hora = req.hora,
+                        status = "ERROR",
+                        consultaId = null,
+                        motivo = (e.message ?: "Erro desconhecido")
+                    )
+                )
+            }
+        }
+
+        return ConsultaRecorrenteResponse(
+            created = created,
+            skipped = skipped,
+            errors = errors,
+            itens = itens
+        )
     }
 
 }

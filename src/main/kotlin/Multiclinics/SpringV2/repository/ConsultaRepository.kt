@@ -141,4 +141,22 @@ interface ConsultaRepository : JpaRepository<Consulta, Int> {
         @Param("fim") fim: LocalDateTime
     ): List<Consulta>
 
+
+    @Query("""
+select count(c) from Consulta c
+where (c.statusConsulta.id is null or c.statusConsulta.id <> 3)
+  and c.datahoraConsulta >= :ini
+  and c.datahoraConsulta < :fim
+  and (
+       c.medico.id = :medicoId
+       or c.paciente.id = :pacienteId
+  )
+""")
+    fun countAtivasDoMedicoOuPacienteNoIntervalo(
+        @Param("medicoId") medicoId: Int,
+        @Param("pacienteId") pacienteId: Int,
+        @Param("ini") ini: LocalDateTime,
+        @Param("fim") fim: LocalDateTime
+    ): Long
+
 }

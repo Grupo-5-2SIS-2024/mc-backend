@@ -10,6 +10,10 @@ import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
+import Multiclinics.SpringV2.dto.ConsultaRecorrenteRequest
+import Multiclinics.SpringV2.dto.ConsultaRecorrenteResponse
+
+
 
 
 @RestController
@@ -172,6 +176,12 @@ class ConsultaController(
         val d = LocalDate.parse(data)
         val lista = consultaService.listarHorariosDisponiveis(medicoId, d, duracaoMin, pacienteId)
         return ResponseEntity.ok(mapOf("horarios" to lista))
+    }
+
+    @PostMapping("/recorrentes")
+    fun agendarRecorrentes(@RequestBody @Valid req: ConsultaRecorrenteRequest): ResponseEntity<ConsultaRecorrenteResponse> {
+        val resp = consultaService.salvarRecorrentes(req)
+        return ResponseEntity.status(201).body(resp)
     }
 
 
