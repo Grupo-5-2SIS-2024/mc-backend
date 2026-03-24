@@ -6,7 +6,9 @@ import Multiclinics.SpringV2.dominio.Paciente
 import Multiclinics.SpringV2.dto.PacienteComResponsavel
 import Multiclinics.SpringV2.dto.PacienteFiltroRequest
 import Multiclinics.SpringV2.dto.PacienteMedicoDto
+import Multiclinics.SpringV2.dto.PacienteResponse
 import Multiclinics.SpringV2.dto.PacienteSemResponsavel
+import Multiclinics.SpringV2.dto.PlanoPacienteResponse
 import Multiclinics.SpringV2.repository.EnderecoRespository
 import Multiclinics.SpringV2.repository.PacienteRepository
 import Multiclinics.SpringV2.repository.ResponsavelRepository
@@ -99,10 +101,13 @@ class PacienteService(
     }
 
 
+    @Transactional
     fun atualizar(id: Int, novoPaciente: Paciente): ResponseEntity<Paciente> {
         val pacienteExistente = pacienteRepository.findById(id)
+
         return if (pacienteExistente.isPresent) {
             val pacienteEscolhido = pacienteExistente.get()
+
             pacienteEscolhido.apply {
                 nome = novoPaciente.nome
                 sobrenome = novoPaciente.sobrenome
@@ -112,7 +117,12 @@ class PacienteService(
                 telefone = novoPaciente.telefone
                 dataNascimento = novoPaciente.dataNascimento
                 foto = novoPaciente.foto
+                cns = novoPaciente.cns
+            }
 
+            pacienteEscolhido.plano = novoPaciente.plano?.id?.let { planoId ->
+                planoRepository.findById(planoId)
+                    .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Plano não encontrado") }
             }
 
             val pacienteAtualizado = pacienteRepository.save(pacienteEscolhido)
@@ -121,7 +131,6 @@ class PacienteService(
             ResponseEntity.status(404).build()
         }
     }
-
 
     fun deletar(id: Int) {
         if (!pacienteRepository.existsById(id)) {
@@ -138,10 +147,33 @@ class PacienteService(
         return lista
     }
 
-    fun buscarPacientePorId(id: Int): ResponseEntity<Paciente> {
+    fun buscarPacientePorId(id: Int): ResponseEntity<PacienteResponse> {
         val pacienteExistente = pacienteRepository.findById(id)
         return if (pacienteExistente.isPresent) {
-            ResponseEntity.ok(pacienteExistente.get())
+            val p = pacienteExistente.get()
+            ResponseEntity.ok(
+                PacienteResponse(
+                    id = p.id,
+                    nome = p.nome,
+                    sobrenome = p.sobrenome,
+                    email = p.email,
+                    telefone = p.telefone,
+                    cpf = p.cpf,
+                    genero = p.genero,
+                    dataNascimento = p.dataNascimento,
+                    cns = p.cns,
+                    foto = p.foto,
+                    endereco = p.endereco,
+                    plano = p.plano?.let {
+                        PlanoPacienteResponse(
+                            id = it.id,
+                            nome = it.nome,
+                            convenioId = it.convenio?.id,
+                            convenioNome = it.convenio?.nome
+                        )
+                    }
+                )
+            )
         } else {
             ResponseEntity.status(HttpStatus.NOT_FOUND).build()
         }

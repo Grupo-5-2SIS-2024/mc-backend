@@ -5,6 +5,7 @@ import Multiclinics.SpringV2.dominio.Medico
 import Multiclinics.SpringV2.dominio.Paciente
 import Multiclinics.SpringV2.dto.PacienteComResponsavel
 import Multiclinics.SpringV2.dto.PacienteMedicoDto
+import Multiclinics.SpringV2.dto.PacienteResponse
 import Multiclinics.SpringV2.dto.PacienteSemResponsavel
 import Multiclinics.SpringV2.repository.PacienteRepository
 import jakarta.validation.Valid
@@ -60,7 +61,7 @@ class PacienteController(
 
 
     @GetMapping("/{id}")
-    fun buscarPacientePorId(@PathVariable id: Int): ResponseEntity<Paciente> {
+    fun buscarPacientePorId(@PathVariable id: Int): ResponseEntity<PacienteResponse> {
         return pacienteService.buscarPacientePorId(id)
     }
 
