@@ -184,5 +184,15 @@ class ConsultaController(
         return ResponseEntity.status(201).body(resp)
     }
 
+    @GetMapping("/painel-dia")
+    fun listarPainelDoDia(
+        @RequestParam(required = false) data: String?,
+        @RequestParam(required = false) medico: String?
+    ): ResponseEntity<List<Map<String, Any?>>> {
+        val dataDia = if (data.isNullOrBlank()) null else LocalDate.parse(data)
+        val resultado = consultaService.listarPainelDoDia(dataDia, medico)
+        return ResponseEntity.ok(resultado)
+    }
+
 
 }

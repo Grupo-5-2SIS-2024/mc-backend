@@ -12,6 +12,12 @@ interface ConsultaRepository : JpaRepository<Consulta, Int> {
     fun findByMedicoId(id: Int): List<Consulta>
     fun findByDatahoraConsultaBetween(inicio: LocalDateTime, fim: LocalDateTime): List<Consulta>
 
+    @Query("select c from Consulta c left join fetch c.medico m left join fetch c.paciente p where c.datahoraConsulta >= :inicio and c.datahoraConsulta < :fim")
+    fun findByDatahoraConsultaBetweenWithRelations(
+        @Param("inicio") inicio: LocalDateTime,
+        @Param("fim") fim: LocalDateTime
+    ): List<Consulta>
+
     @Query("""
     SELECT 
         p.nome AS nomePaciente, 

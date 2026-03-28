@@ -1,26 +1,24 @@
 package Multiclinics.SpringV2.Service
 
+import Multiclinics.SpringV2.controller.ConvenioController
 import Multiclinics.SpringV2.dominio.Consulta
-import Multiclinics.SpringV2.dominio.Medico
 import Multiclinics.SpringV2.dominio.StatusConsulta
 import Multiclinics.SpringV2.repository.ConsultaRepository
 import Multiclinics.SpringV2.repository.MedicoRepository
+import Multiclinics.SpringV2.repository.PacienteRepository
+import Multiclinics.SpringV2.repository.EspecificacaoMedicaRepository
+import Multiclinics.SpringV2.repository.CargaHorariaRepository
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import Multiclinics.SpringV2.dominio.DiaSemana
-import Multiclinics.SpringV2.repository.CargaHorariaRepository
 import java.time.LocalTime
 import Multiclinics.SpringV2.dto.ConsultaRecorrenteRequest
 import Multiclinics.SpringV2.dto.ConsultaRecorrenteResponse
 import Multiclinics.SpringV2.dto.ConsultaRecorrenteItemResult
-import Multiclinics.SpringV2.repository.EspecificacaoMedicaRepository
-import Multiclinics.SpringV2.repository.PacienteRepository
 import jakarta.transaction.Transactional
 
 @Service
@@ -30,7 +28,8 @@ class ConsultaService(
     val pacienteRepository: PacienteRepository,
     val especificacaoMedicaRepository: EspecificacaoMedicaRepository,
     private val statusConsultaService: StatusConsultaService, // Adiciona a dependência
-    private val cargaHorariaRepository: CargaHorariaRepository
+    private val cargaHorariaRepository: CargaHorariaRepository,
+    private val convenio: ConvenioController
 ) {
     fun validarLista(lista: List<*>) {
         if (lista.isEmpty()) {
@@ -469,6 +468,37 @@ class ConsultaService(
             errors = errors,
             itens = itens
         )
+    }
+
+    // Novo método de repositório será usado aqui para buscar as consultas do dia
+    @Transactional
+    fun listarPainelDoDia(data: LocalDate?, medico: String?): List<Map<String, Any?>> {
+        val dataDia = data ?: LocalDate.now()
+
+        val inicio = dataDia.atStartOfDay()
+        val fim = dataDia.plusDays(1).atStartOfDay()
+
+        val consultasDia = consultaRepository.findByDatahoraConsultaBetweenWithRelations(inicio, fim)
+
+        return consultasDia
+            .filter { consulta ->
+                medico.isNullOrBlank() || consulta.medico?.nome?.contains(medico, ignoreCase = true) == true
+            }
+            .map { consulta ->
+                val paciente = consulta.paciente
+                val medicoObj = consulta.medico
+                val idade = paciente?.dataNascimento?.let { dn ->
+                    java.time.Period.between(dn, dataDia).years
+                }
+                val convenioNome = paciente?.plano?.convenio?.nome
+                mapOf(
+                    "horario" to consulta.datahoraConsulta?.toLocalTime(),
+                    "paciente" to paciente?.nome,
+                    "medico" to medicoObj?.nome,
+                    "idade" to idade,
+                    "convenio" to convenioNome
+                )
+            }
     }
 
 }

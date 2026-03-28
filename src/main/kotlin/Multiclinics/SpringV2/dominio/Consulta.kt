@@ -37,5 +37,8 @@ data class Consulta(
 
     @NotNull(message = "A duração da consulta não pode ser nula.")
     @Column(name = "duracao_Consulta")
-    var duracaoConsulta: LocalTime? = null
+    var duracaoConsulta: LocalTime? = null,
+
+    @Column(name = "sala")
+    var sala: String? = null
 )
