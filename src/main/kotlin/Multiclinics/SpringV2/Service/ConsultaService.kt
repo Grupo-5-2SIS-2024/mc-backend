@@ -472,17 +472,16 @@ class ConsultaService(
 
     // Novo método de repositório será usado aqui para buscar as consultas do dia
     @Transactional
-    fun listarPainelDoDia(data: LocalDate?, medico: String?): List<Map<String, Any?>> {
+    fun listarPainelDoDia(data: LocalDate?, medico: String?, duracao: Int?): List<Map<String, Any?>> {
         val dataDia = data ?: LocalDate.now()
-
         val inicio = dataDia.atStartOfDay()
         val fim = dataDia.plusDays(1).atStartOfDay()
-
         val consultasDia = consultaRepository.findByDatahoraConsultaBetweenWithRelations(inicio, fim)
 
         return consultasDia
             .filter { consulta ->
-                medico.isNullOrBlank() || consulta.medico?.nome?.contains(medico, ignoreCase = true) == true
+                (medico.isNullOrBlank() || consulta.medico?.nome?.contains(medico, ignoreCase = true) == true) &&
+                (duracao == null || duracaoEmMinutos(consulta.duracaoConsulta) == duracao)
             }
             .map { consulta ->
                 val paciente = consulta.paciente
@@ -491,12 +490,21 @@ class ConsultaService(
                     java.time.Period.between(dn, dataDia).years
                 }
                 val convenioNome = paciente?.plano?.convenio?.nome
+                val statusId = consulta.statusConsulta?.id
+                val statusDesc = consulta.statusConsulta?.nomeStatus
+                val sala = consulta.sala
                 mapOf(
                     "horario" to consulta.datahoraConsulta?.toLocalTime(),
                     "paciente" to paciente?.nome,
+                    "pacienteSobrenome" to paciente?.sobrenome,
                     "medico" to medicoObj?.nome,
+                    "medicoSobrenome" to medicoObj?.sobrenome,
                     "idade" to idade,
-                    "convenio" to convenioNome
+                    "convenio" to convenioNome,
+                    "statusId" to statusId,
+                    "status" to statusDesc,
+                    "sala" to sala,
+                    "duracao" to duracaoEmMinutos(consulta.duracaoConsulta)
                 )
             }
     }

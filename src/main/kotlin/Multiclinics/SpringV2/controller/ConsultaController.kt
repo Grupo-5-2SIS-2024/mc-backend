@@ -187,10 +187,11 @@ class ConsultaController(
     @GetMapping("/painel-dia")
     fun listarPainelDoDia(
         @RequestParam(required = false) data: String?,
-        @RequestParam(required = false) medico: String?
+        @RequestParam(required = false) medico: String?,
+        @RequestParam(required = false) duracao: Int?
     ): ResponseEntity<List<Map<String, Any?>>> {
         val dataDia = if (data.isNullOrBlank()) null else LocalDate.parse(data)
-        val resultado = consultaService.listarPainelDoDia(dataDia, medico)
+        val resultado = consultaService.listarPainelDoDia(dataDia, medico, duracao)
         return ResponseEntity.ok(resultado)
     }
 
