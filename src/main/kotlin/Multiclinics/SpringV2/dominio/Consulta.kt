@@ -39,6 +39,7 @@ data class Consulta(
     @Column(name = "duracao_Consulta")
     var duracaoConsulta: LocalTime? = null,
 
-    @Column(name = "sala")
-    var sala: String? = null
+    @ManyToOne
+    @JoinColumn(name = "sala_id")
+    var sala: SalaAtendimento? = null
 )

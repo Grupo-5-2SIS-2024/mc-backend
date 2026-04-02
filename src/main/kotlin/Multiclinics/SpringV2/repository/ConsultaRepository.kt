@@ -12,7 +12,15 @@ interface ConsultaRepository : JpaRepository<Consulta, Int> {
     fun findByMedicoId(id: Int): List<Consulta>
     fun findByDatahoraConsultaBetween(inicio: LocalDateTime, fim: LocalDateTime): List<Consulta>
 
-    @Query("select c from Consulta c left join fetch c.medico m left join fetch c.paciente p where c.datahoraConsulta >= :inicio and c.datahoraConsulta < :fim")
+    @Query("""
+    select c
+    from Consulta c
+    left join fetch c.medico m
+    left join fetch c.paciente p
+    left join fetch c.sala s
+    where c.datahoraConsulta >= :inicio
+      and c.datahoraConsulta < :fim
+""")
     fun findByDatahoraConsultaBetweenWithRelations(
         @Param("inicio") inicio: LocalDateTime,
         @Param("fim") fim: LocalDateTime
@@ -164,5 +172,18 @@ where (c.statusConsulta.id is null or c.statusConsulta.id <> 3)
         @Param("ini") ini: LocalDateTime,
         @Param("fim") fim: LocalDateTime
     ): Long
+
+    @Query("""
+    select c from Consulta c
+    where c.sala.id = :salaId
+      and c.datahoraConsulta >= :ini
+      and c.datahoraConsulta < :fim
+      and (c.statusConsulta.id is null or c.statusConsulta.id <> 3)
+""")
+    fun findAtivasDaSalaNoDia(
+        @Param("salaId") salaId: Int,
+        @Param("ini") ini: LocalDateTime,
+        @Param("fim") fim: LocalDateTime
+    ): List<Consulta>
 
 }

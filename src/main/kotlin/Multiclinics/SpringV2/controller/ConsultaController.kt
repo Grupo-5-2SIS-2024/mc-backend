@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import Multiclinics.SpringV2.dto.ConsultaRecorrenteRequest
 import Multiclinics.SpringV2.dto.ConsultaRecorrenteResponse
+import java.time.LocalTime
 
 
 
@@ -35,7 +36,7 @@ class ConsultaController(
 
 
     @PutMapping("/{id}")
-    fun alterarConsulta(@PathVariable id: Int, @RequestBody @Valid novaConsulta: Consulta): ResponseEntity<*> {
+    fun alterarConsulta(@PathVariable id: Int, @RequestBody @Valid novaConsulta: Consulta): ResponseEntity<Consulta> {
         val consultaAtualizada = consultaService.atualizar(id, novaConsulta)
         return ResponseEntity.ok(consultaAtualizada)
     }
@@ -129,7 +130,7 @@ class ConsultaController(
 
 
         val writer = response.writer
-        writer.append("ID,Data e Hora,Descrição,Médico,Paciente,Status,Especificação Médica\n")
+        writer.append("ID,Data e Hora,Descrição,Médico,Paciente,Status,Especificação Médica,Sala\n")
 
         consultas.forEach { consulta ->
             writer.append(
@@ -139,7 +140,8 @@ class ConsultaController(
                         "\"${consulta.medico?.nome}\"," +
                         "\"${consulta.paciente?.nome}\"," +
                         "\"${consulta.statusConsulta?.nomeStatus}\"," +
-                        "\"${consulta.especificacaoMedica?.area}\"\n"
+                        "\"${consulta.especificacaoMedica?.area}\"," +
+                        "\"${consulta.sala?.nome ?: ""}\"\n"
             )
         }
 
@@ -193,6 +195,18 @@ class ConsultaController(
         val dataDia = if (data.isNullOrBlank()) null else LocalDate.parse(data)
         val resultado = consultaService.listarPainelDoDia(dataDia, medico, duracao)
         return ResponseEntity.ok(resultado)
+    }
+
+    @GetMapping("/salas-disponiveis")
+    fun salasDisponiveis(
+        @RequestParam data: String,
+        @RequestParam hora: String,
+        @RequestParam duracaoMin: Int
+    ): ResponseEntity<Map<String, Any>> {
+        val dataConsulta = LocalDate.parse(data)
+        val horaConsulta = LocalTime.parse(hora)
+        val lista = consultaService.listarSalasDisponiveis(dataConsulta, horaConsulta, duracaoMin)
+        return ResponseEntity.ok(mapOf("salas" to lista))
     }
 
 
