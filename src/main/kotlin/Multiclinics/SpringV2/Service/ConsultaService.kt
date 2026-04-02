@@ -20,6 +20,7 @@ import Multiclinics.SpringV2.dto.ConsultaRecorrenteRequest
 import Multiclinics.SpringV2.dto.ConsultaRecorrenteResponse
 import Multiclinics.SpringV2.dto.ConsultaRecorrenteItemResult
 import jakarta.transaction.Transactional
+import Multiclinics.SpringV2.repository.SalaAtendimentoRepository
 
 @Service
 class ConsultaService(
@@ -29,7 +30,8 @@ class ConsultaService(
     val especificacaoMedicaRepository: EspecificacaoMedicaRepository,
     private val statusConsultaService: StatusConsultaService, // Adiciona a dependência
     private val cargaHorariaRepository: CargaHorariaRepository,
-    private val convenio: ConvenioController
+    private val convenio: ConvenioController,
+    private val salaAtendimentoRepository: SalaAtendimentoRepository
 ) {
     fun validarLista(lista: List<*>) {
         if (lista.isEmpty()) {
@@ -37,37 +39,91 @@ class ConsultaService(
         }
     }
 
-    fun atualizar(id: Int, novaConsulta: Consulta): ResponseEntity<Consulta> {
-        if (!medicoRepository.existsById(novaConsulta.medico!!.id!!)) {
-            return ResponseEntity.status(404).build()
+    fun atualizar(id: Int, novaConsulta: Consulta): Consulta {
+        val consultaExistente = consultaRepository.findById(id).orElseThrow {
+            ResponseStatusException(HttpStatusCode.valueOf(404), "Consulta não encontrada")
         }
 
-        val consultaExistente = consultaRepository.findById(id)
-        if (consultaExistente.isPresent) {
-            val consultaEscolhida = consultaExistente.get()
+        val medicoId = novaConsulta.medico?.id ?: throw ResponseStatusException(
+            HttpStatusCode.valueOf(400),
+            "Profissional obrigatório"
+        )
 
-            // Atualiza os dados da consulta existente com os novos dados
-            val consultaAtualizada = consultaEscolhida.copy(
-                datahoraConsulta = novaConsulta.datahoraConsulta,
-                descricao = novaConsulta.descricao,
-                medico = novaConsulta.medico,
-                especificacaoMedica = novaConsulta.especificacaoMedica,
-                statusConsulta = novaConsulta.statusConsulta,
-                paciente = novaConsulta.paciente,
-                duracaoConsulta = novaConsulta.duracaoConsulta
-            )
-
-            val consultaAlterada = consultaRepository.save(consultaAtualizada)
-            return ResponseEntity.status(200).body(consultaAlterada)
-        } else {
-            return ResponseEntity.status(404).build()
+        if (!medicoRepository.existsById(medicoId)) {
+            throw ResponseStatusException(HttpStatusCode.valueOf(404), "Profissional não encontrado")
         }
+
+        val pacienteId = novaConsulta.paciente?.id ?: throw ResponseStatusException(
+            HttpStatusCode.valueOf(400),
+            "Paciente obrigatório"
+        )
+
+        if (!pacienteRepository.existsById(pacienteId)) {
+            throw ResponseStatusException(HttpStatusCode.valueOf(404), "Paciente não encontrado")
+        }
+
+        val especificacaoId = novaConsulta.especificacaoMedica?.id ?: throw ResponseStatusException(
+            HttpStatusCode.valueOf(400),
+            "Área obrigatória"
+        )
+
+        if (!especificacaoMedicaRepository.existsById(especificacaoId)) {
+            throw ResponseStatusException(HttpStatusCode.valueOf(404), "Área não encontrada")
+        }
+
+        val salaId = novaConsulta.sala?.id ?: throw ResponseStatusException(
+            HttpStatusCode.valueOf(400),
+            "Sala obrigatória"
+        )
+
+        if (!salaAtendimentoRepository.existsById(salaId)) {
+            throw ResponseStatusException(HttpStatusCode.valueOf(404), "Sala não encontrada")
+        }
+
+        val dataHora = novaConsulta.datahoraConsulta ?: throw ResponseStatusException(
+            HttpStatusCode.valueOf(400),
+            "Data e hora obrigatórias"
+        )
+
+        val durMin = duracaoEmMinutos(novaConsulta.duracaoConsulta)
+        if (durMin !in listOf(30, 50, 60)) {
+            throw ResponseStatusException(HttpStatusCode.valueOf(400), "Duração inválida")
+        }
+
+        if (!salaDisponivelNoHorario(salaId, dataHora, durMin, id)) {
+            throw ResponseStatusException(HttpStatusCode.valueOf(409), "Sala ocupada neste horário")
+        }
+
+        val consultaAtualizada = consultaExistente.copy(
+            datahoraConsulta = novaConsulta.datahoraConsulta,
+            descricao = novaConsulta.descricao,
+            medico = novaConsulta.medico,
+            especificacaoMedica = novaConsulta.especificacaoMedica,
+            statusConsulta = novaConsulta.statusConsulta,
+            paciente = novaConsulta.paciente,
+            duracaoConsulta = novaConsulta.duracaoConsulta,
+            sala = novaConsulta.sala
+        )
+
+        return consultaRepository.save(consultaAtualizada)
     }
 
     fun salvar(novaConsulta: Consulta): Consulta {
-        val medicoId = novaConsulta.medico?.id ?: throw ResponseStatusException(HttpStatusCode.valueOf(400), "Médico obrigatório")
-        val pacienteId = novaConsulta.paciente?.id ?: throw ResponseStatusException(HttpStatusCode.valueOf(400), "Paciente obrigatório")
-        val dt = novaConsulta.datahoraConsulta ?: throw ResponseStatusException(HttpStatusCode.valueOf(400), "Data/hora obrigatória")
+        val medicoId = novaConsulta.medico?.id
+            ?: throw ResponseStatusException(HttpStatusCode.valueOf(400), "Médico obrigatório")
+
+        val pacienteId = novaConsulta.paciente?.id
+            ?: throw ResponseStatusException(HttpStatusCode.valueOf(400), "Paciente obrigatório")
+
+        val salaId = novaConsulta.sala?.id
+            ?: throw ResponseStatusException(HttpStatusCode.valueOf(400), "Sala obrigatória")
+
+        val dt = novaConsulta.datahoraConsulta
+            ?: throw ResponseStatusException(HttpStatusCode.valueOf(400), "Data/hora obrigatória")
+
+        if (!salaAtendimentoRepository.existsById(salaId)) {
+            throw ResponseStatusException(HttpStatusCode.valueOf(404), "Sala não encontrada")
+        }
 
         val durMin = duracaoEmMinutos(novaConsulta.duracaoConsulta)
         if (durMin !in listOf(30, 50, 60)) {
@@ -80,6 +136,10 @@ class ConsultaService(
         val disponiveis = listarHorariosDisponiveis(medicoId, data, durMin, pacienteId)
         if (!disponiveis.contains(hora)) {
             throw ResponseStatusException(HttpStatusCode.valueOf(409), "Horário indisponível para o profissional ou paciente")
+        }
+
+        if (!salaDisponivelNoHorario(salaId, dt, durMin)) {
+            throw ResponseStatusException(HttpStatusCode.valueOf(409), "Sala ocupada neste horário")
         }
 
         return consultaRepository.save(novaConsulta)
@@ -382,6 +442,10 @@ class ConsultaService(
             throw ResponseStatusException(HttpStatusCode.valueOf(404), "Médico não encontrado")
         }
 
+        if (!salaAtendimentoRepository.existsById(req.salaId)) {
+            throw ResponseStatusException(HttpStatusCode.valueOf(404), "Sala não encontrada")
+        }
+
         val durMin = req.duracaoMin
         if (durMin !in listOf(30, 50, 60)) {
             throw ResponseStatusException(HttpStatusCode.valueOf(400), "Duração inválida")
@@ -394,6 +458,7 @@ class ConsultaService(
         val medicoRef = medicoRepository.getReferenceById(req.medicoId)
         val pacienteRef = pacienteRepository.getReferenceById(req.pacienteId)
         val especRef = especificacaoMedicaRepository.getReferenceById(req.especificacaoMedicaId)
+        val salaRef = salaAtendimentoRepository.getReferenceById(req.salaId)
         val statusRef = statusConsultaService.buscarPorId(req.statusConsultaId)
             ?: throw ResponseStatusException(HttpStatusCode.valueOf(404), "Status não encontrado")
 
@@ -411,7 +476,10 @@ class ConsultaService(
                 val qtd = consultaRepository.countAtivasDoMedicoOuPacienteNoIntervalo(
                     req.medicoId, req.pacienteId, ini, fim
                 )
-                if (qtd > 0) {
+
+                val salaLivre = salaDisponivelNoHorario(req.salaId, ini, durMin)
+
+                if (qtd > 0 || !salaLivre) {
                     skipped += 1
                     itens.add(
                         ConsultaRecorrenteItemResult(
@@ -419,7 +487,7 @@ class ConsultaService(
                             hora = req.hora,
                             status = "SKIPPED_CONFLICT",
                             consultaId = null,
-                            motivo = "Conflito de agenda para médico ou paciente"
+                            motivo = if (!salaLivre) "Sala ocupada nesse horário" else "Conflito de agenda para médico ou paciente"
                         )
                     )
                     continue
@@ -433,7 +501,8 @@ class ConsultaService(
                     especificacaoMedica = especRef,
                     statusConsulta = statusRef,
                     paciente = pacienteRef,
-                    duracaoConsulta = LocalTime.of(durMin / 60, durMin % 60)
+                    duracaoConsulta = LocalTime.of(durMin / 60, durMin % 60),
+                    sala = salaRef
                 )
 
                 val saved = consultaRepository.save(consulta)
@@ -481,7 +550,7 @@ class ConsultaService(
         return consultasDia
             .filter { consulta ->
                 (medico.isNullOrBlank() || consulta.medico?.nome?.contains(medico, ignoreCase = true) == true) &&
-                (duracao == null || duracaoEmMinutos(consulta.duracaoConsulta) == duracao)
+                        (duracao == null || duracaoEmMinutos(consulta.duracaoConsulta) == duracao)
             }
             .map { consulta ->
                 val paciente = consulta.paciente
@@ -493,11 +562,6 @@ class ConsultaService(
                 val statusId = consulta.statusConsulta?.id
                 val statusDesc = consulta.statusConsulta?.nomeStatus
                 val sala = consulta.sala?.nome
-                val tipoConsulta = when (duracaoEmMinutos(consulta.duracaoConsulta)) {
-                    50, 60 -> "ABA"
-                    30 -> "CONVENCIONAL"
-                    else -> "OUTRO"
-                }
                 mapOf(
                     "horario" to consulta.datahoraConsulta?.toLocalTime(),
                     "paciente" to paciente?.nome,
@@ -512,6 +576,39 @@ class ConsultaService(
                     "duracao" to duracaoEmMinutos(consulta.duracaoConsulta)
                 )
             }
+    }
+
+    private fun salaDisponivelNoHorario(
+        salaId: Int,
+        inicioConsulta: LocalDateTime,
+        duracaoMin: Int,
+        consultaIgnorarId: Int? = null
+    ): Boolean {
+        val inicioDia = inicioConsulta.toLocalDate().atStartOfDay()
+        val fimDia = inicioConsulta.toLocalDate().plusDays(1).atStartOfDay()
+        val fimConsulta = inicioConsulta.plusMinutes(duracaoMin.toLong())
+
+        val consultasSala = consultaRepository.findAtivasDaSalaNoDia(salaId, inicioDia, fimDia)
+            .filter { consultaIgnorarId == null || it.id != consultaIgnorarId }
+
+        return consultasSala.none { consulta ->
+            val inicioExistente = consulta.datahoraConsulta ?: return@none false
+            val fimExistente = inicioExistente.plusMinutes(duracaoEmMinutos(consulta.duracaoConsulta).toLong())
+            overlaps(inicioConsulta, fimConsulta, inicioExistente, fimExistente)
+        }
+    }
+
+    fun listarSalasDisponiveis(
+        data: LocalDate,
+        hora: LocalTime,
+        duracaoMin: Int
+    ) = salaAtendimentoRepository.findAllByOrderByNomeAsc().filter { sala ->
+        val salaId = sala.id ?: return@filter false
+        salaDisponivelNoHorario(
+            salaId = salaId,
+            inicioConsulta = LocalDateTime.of(data, hora),
+            duracaoMin = duracaoMin
+        )
     }
 
 }
