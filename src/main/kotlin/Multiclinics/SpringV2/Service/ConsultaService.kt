@@ -481,7 +481,7 @@ class ConsultaService(
         return consultasDia
             .filter { consulta ->
                 (medico.isNullOrBlank() || consulta.medico?.nome?.contains(medico, ignoreCase = true) == true) &&
-                (duracao == null || duracaoEmMinutos(consulta.duracaoConsulta) == duracao)
+                (duracao == null || (duracao == 50 && (duracaoEmMinutos(consulta.duracaoConsulta) == 50 || duracaoEmMinutos(consulta.duracaoConsulta) == 60)) || duracaoEmMinutos(consulta.duracaoConsulta) == duracao)
             }
             .map { consulta ->
                 val paciente = consulta.paciente
@@ -493,6 +493,11 @@ class ConsultaService(
                 val statusId = consulta.statusConsulta?.id
                 val statusDesc = consulta.statusConsulta?.nomeStatus
                 val sala = consulta.sala
+                val tipoConsulta = when (duracaoEmMinutos(consulta.duracaoConsulta)) {
+                    50, 60 -> "ABA"
+                    30 -> "CONVENCIONAL"
+                    else -> "OUTRO"
+                }
                 mapOf(
                     "horario" to consulta.datahoraConsulta?.toLocalTime(),
                     "paciente" to paciente?.nome,
@@ -504,7 +509,8 @@ class ConsultaService(
                     "statusId" to statusId,
                     "status" to statusDesc,
                     "sala" to sala,
-                    "duracao" to duracaoEmMinutos(consulta.duracaoConsulta)
+                    "duracao" to duracaoEmMinutos(consulta.duracaoConsulta),
+                    "tipo" to tipoConsulta
                 )
             }
     }
