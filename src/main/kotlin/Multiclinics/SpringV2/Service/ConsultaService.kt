@@ -549,8 +549,13 @@ class ConsultaService(
 
         return consultasDia
             .filter { consulta ->
+                val duracaoConsulta = duracaoEmMinutos(consulta.duracaoConsulta)
+                val filtroDuracao = when (duracao) {
+                    50 -> duracaoConsulta == 50 || duracaoConsulta == 60 // ABA e Neuro
+                    else -> duracao == null || duracaoConsulta == duracao
+                }
                 (medico.isNullOrBlank() || consulta.medico?.nome?.contains(medico, ignoreCase = true) == true) &&
-                        (duracao == null || duracaoEmMinutos(consulta.duracaoConsulta) == duracao)
+                        filtroDuracao
             }
             .map { consulta ->
                 val paciente = consulta.paciente
