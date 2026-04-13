@@ -150,7 +150,7 @@ class ConsultaController(
     }
 
     @PatchMapping("/{id}/status")
-    fun atualizarStatusConsulta(@PathVariable id: Int, @RequestParam statusId: Int): ResponseEntity<*> {
+    fun atualizarStatusConsulta(@PathVariable id: Int, @RequestParam statusId: Int): ResponseEntity<Consulta> {
         val consultaAtualizada = consultaService.atualizarStatusConsulta(id, statusId)
         return ResponseEntity.ok(consultaAtualizada)
     }

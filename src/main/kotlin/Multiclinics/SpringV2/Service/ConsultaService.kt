@@ -304,19 +304,15 @@ class ConsultaService(
         }
     }
 
-    fun atualizarStatusConsulta(id: Int, statusId: Int): Consulta? {
-        val consultaOpt = consultaRepository.findById(id)
-        if (consultaOpt.isPresent) {
-            val consulta = consultaOpt.get()
-            // Busca o status pelo id
-            val status = statusConsultaService.buscarPorId(statusId)
-            if (status != null) {
-                consulta.statusConsulta = status
-                consultaRepository.save(consulta)
-                return consulta
-            }
+    @Transactional
+    fun atualizarStatusConsulta(id: Int, statusId: Int): Consulta {
+        val consulta = consultaRepository.findById(id).orElseThrow {
+            ResponseStatusException(HttpStatusCode.valueOf(404), "Consulta não encontrada")
         }
-        return null
+        val status = statusConsultaService.buscarPorId(statusId)
+            ?: throw ResponseStatusException(HttpStatusCode.valueOf(404), "Status não encontrado: $statusId")
+        consulta.statusConsulta = status
+        return consultaRepository.save(consulta)
     }
 
     private val SLOTS_ABA = listOf(
@@ -568,6 +564,8 @@ class ConsultaService(
                 val statusDesc = consulta.statusConsulta?.nomeStatus
                 val sala = consulta.sala?.nome
                 mapOf(
+                    "consultaId" to consulta.id,
+                    "datahoraConsulta" to consulta.datahoraConsulta,
                     "horario" to consulta.datahoraConsulta?.toLocalTime(),
                     "paciente" to paciente?.nome,
                     "pacienteSobrenome" to paciente?.sobrenome,
