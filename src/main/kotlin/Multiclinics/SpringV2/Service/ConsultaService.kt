@@ -28,11 +28,13 @@ class ConsultaService(
     val medicoRepository: MedicoRepository,
     val pacienteRepository: PacienteRepository,
     val especificacaoMedicaRepository: EspecificacaoMedicaRepository,
-    private val statusConsultaService: StatusConsultaService, // Adiciona a dependência
+    private val statusConsultaService: StatusConsultaService,
     private val cargaHorariaRepository: CargaHorariaRepository,
     private val convenio: ConvenioController,
     private val salaAtendimentoRepository: SalaAtendimentoRepository
 ) {
+    private val LIMITE_ATENDIMENTOS_POR_SALA = 5
+
     fun validarLista(lista: List<*>) {
         if (lista.isEmpty()) {
             throw ResponseStatusException(HttpStatusCode.valueOf(204))
@@ -71,12 +73,9 @@ class ConsultaService(
             throw ResponseStatusException(HttpStatusCode.valueOf(404), "Área não encontrada")
         }
 
-        val salaId = novaConsulta.sala?.id ?: throw ResponseStatusException(
-            HttpStatusCode.valueOf(400),
-            "Sala obrigatória"
-        )
+        val salaId = novaConsulta.sala?.id
 
-        if (!salaAtendimentoRepository.existsById(salaId)) {
+        if (salaId != null && !salaAtendimentoRepository.existsById(salaId)) {
             throw ResponseStatusException(HttpStatusCode.valueOf(404), "Sala não encontrada")
         }
 
@@ -90,8 +89,11 @@ class ConsultaService(
             throw ResponseStatusException(HttpStatusCode.valueOf(400), "Duração inválida")
         }
 
-        if (!salaDisponivelNoHorario(salaId, dataHora, durMin, id)) {
-            throw ResponseStatusException(HttpStatusCode.valueOf(409), "Sala ocupada neste horário")
+        if (salaId != null && !salaComCapacidadeNoHorario(salaId, dataHora, durMin, id)) {
+            throw ResponseStatusException(
+                HttpStatusCode.valueOf(409),
+                "Sala já atingiu o limite de 5 atendimentos neste horário"
+            )
         }
 
         val consultaAtualizada = consultaExistente.copy(
@@ -116,12 +118,11 @@ class ConsultaService(
             ?: throw ResponseStatusException(HttpStatusCode.valueOf(400), "Paciente obrigatório")
 
         val salaId = novaConsulta.sala?.id
-            ?: throw ResponseStatusException(HttpStatusCode.valueOf(400), "Sala obrigatória")
 
         val dt = novaConsulta.datahoraConsulta
             ?: throw ResponseStatusException(HttpStatusCode.valueOf(400), "Data/hora obrigatória")
 
-        if (!salaAtendimentoRepository.existsById(salaId)) {
+        if (salaId != null && !salaAtendimentoRepository.existsById(salaId)) {
             throw ResponseStatusException(HttpStatusCode.valueOf(404), "Sala não encontrada")
         }
 
@@ -135,11 +136,17 @@ class ConsultaService(
 
         val disponiveis = listarHorariosDisponiveis(medicoId, data, durMin, pacienteId)
         if (!disponiveis.contains(hora)) {
-            throw ResponseStatusException(HttpStatusCode.valueOf(409), "Horário indisponível para o profissional ou paciente")
+            throw ResponseStatusException(
+                HttpStatusCode.valueOf(409),
+                "Horário indisponível para o profissional ou paciente"
+            )
         }
 
-        if (!salaDisponivelNoHorario(salaId, dt, durMin)) {
-            throw ResponseStatusException(HttpStatusCode.valueOf(409), "Sala ocupada neste horário")
+        if (salaId != null && !salaComCapacidadeNoHorario(salaId, dt, durMin)) {
+            throw ResponseStatusException(
+                HttpStatusCode.valueOf(409),
+                "Sala já atingiu o limite de 5 atendimentos neste horário"
+            )
         }
 
         return consultaRepository.save(novaConsulta)
@@ -174,9 +181,6 @@ class ConsultaService(
         }
     }
 
-
-
-
     fun getLista(): List<Consulta> {
         val lista = consultaRepository.findAll()
         validarLista(lista)
@@ -194,23 +198,17 @@ class ConsultaService(
         return ResponseEntity.status(200).body(consultasMedico)
     }
 
-
-    // API INDIVIDUAL PEDRO
-
-
-
     fun getAltasUltimosSeisMeses(): List<Map<String, Any>> {
         val result = consultaRepository.findAltasUltimosSeisMeses()
 
-        // Agrupando os detalhes por ano e mês
-        val groupedResult = result.groupBy { Pair(it[0], it[1]) } // Agrupa por ano e mês
+        val groupedResult = result.groupBy { Pair(it[0], it[1]) }
 
         return groupedResult.map { (key, records) ->
             val (ano, mes) = key
             mapOf(
                 "ano" to ano,
                 "mes" to mes,
-                "total" to records.sumOf { (it[2] as Long) }, // Soma o total
+                "total" to records.sumOf { (it[2] as Long) },
                 "details" to records.map {
                     mapOf(
                         "pacienteId" to (it[3]?.toString() ?: "null"),
@@ -224,21 +222,18 @@ class ConsultaService(
         }
     }
 
-
-
     fun getHorariosUltimosSeisMeses(): List<Map<String, Any>> {
         val result = consultaRepository.findHorariosUltimosSeisMeses()
 
-        // Agrupando os registros por ano e mês
-        val groupedResult = result.groupBy { Pair(it[0], it[1]) } // Agrupa por ano e mês
+        val groupedResult = result.groupBy { Pair(it[0], it[1]) }
 
         return groupedResult.map { (key, records) ->
             val (ano, mes) = key
             mapOf(
                 "ano" to ano,
                 "mes" to mes,
-                "agendados" to records.sumOf { it[2] as Long }, // Soma os valores de agendados
-                "disponiveis" to records.first()[3], // disponiveis será o mesmo para o grupo
+                "agendados" to records.sumOf { it[2] as Long },
+                "disponiveis" to records.first()[3],
                 "details" to records.map {
                     mapOf(
                         "pacienteId" to (it.getOrNull(4)?.toString() ?: "null"),
@@ -251,8 +246,6 @@ class ConsultaService(
             )
         }
     }
-
-
 
     fun getConcluidosETotal(): Map<String, Any> {
         val concluidos = consultaRepository.countConcluidos()
@@ -274,7 +267,6 @@ class ConsultaService(
             "details" to detailsList
         )
     }
-
 
     fun getPercentagemConcluidos3(): Double {
         val cancelados = consultaRepository.countCancelada()
@@ -316,18 +308,18 @@ class ConsultaService(
     }
 
     private val SLOTS_ABA = listOf(
-        "08:00","08:50","09:40","10:30","11:00","11:50","12:40",
-        "13:40","14:30","15:20","16:10","17:00"
+        "08:00", "08:50", "09:40", "10:30", "11:00", "11:50", "12:40",
+        "13:40", "14:30", "15:20", "16:10", "17:00"
     )
 
     private val SLOTS_CONV = listOf(
-        "08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30","12:00","12:30","13:00",
-        "13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"
+        "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00",
+        "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"
     )
 
     private val SLOTS_NEURO = listOf(
-        "08:00","09:00","10:00","11:00","12:00",
-        "13:00","14:00","15:00","16:00","17:00"
+        "08:00", "09:00", "10:00", "11:00", "12:00",
+        "13:00", "14:00", "15:00", "16:00", "17:00"
     )
 
     private fun diaSemanaEnum(data: LocalDate): DiaSemana {
@@ -421,7 +413,6 @@ class ConsultaService(
         return disponiveis
     }
 
-    // Método para buscar consultas em um intervalo de datas
     fun buscarPorIntervalo(inicio: LocalDate, fim: LocalDate): List<Consulta> {
         val consultas = consultaRepository.findAll().filter { consulta ->
             consulta.datahoraConsulta?.toLocalDate()?.let { data ->
@@ -431,14 +422,13 @@ class ConsultaService(
         return consultas
     }
 
-
     @Transactional
     fun salvarRecorrentes(req: ConsultaRecorrenteRequest): ConsultaRecorrenteResponse {
         if (!medicoRepository.existsById(req.medicoId)) {
             throw ResponseStatusException(HttpStatusCode.valueOf(404), "Médico não encontrado")
         }
 
-        if (!salaAtendimentoRepository.existsById(req.salaId)) {
+        if (req.salaId != null && !salaAtendimentoRepository.existsById(req.salaId)) {
             throw ResponseStatusException(HttpStatusCode.valueOf(404), "Sala não encontrada")
         }
 
@@ -454,7 +444,7 @@ class ConsultaService(
         val medicoRef = medicoRepository.getReferenceById(req.medicoId)
         val pacienteRef = pacienteRepository.getReferenceById(req.pacienteId)
         val especRef = especificacaoMedicaRepository.getReferenceById(req.especificacaoMedicaId)
-        val salaRef = salaAtendimentoRepository.getReferenceById(req.salaId)
+        val salaRef = req.salaId?.let { salaAtendimentoRepository.getReferenceById(it) }
         val statusRef = statusConsultaService.buscarPorId(req.statusConsultaId)
             ?: throw ResponseStatusException(HttpStatusCode.valueOf(404), "Status não encontrado")
 
@@ -473,9 +463,9 @@ class ConsultaService(
                     req.medicoId, req.pacienteId, ini, fim
                 )
 
-                val salaLivre = salaDisponivelNoHorario(req.salaId, ini, durMin)
+                val salaComCapacidade = req.salaId == null || salaComCapacidadeNoHorario(req.salaId, ini, durMin)
 
-                if (qtd > 0 || !salaLivre) {
+                if (qtd > 0 || !salaComCapacidade) {
                     skipped += 1
                     itens.add(
                         ConsultaRecorrenteItemResult(
@@ -483,7 +473,11 @@ class ConsultaService(
                             hora = req.hora,
                             status = "SKIPPED_CONFLICT",
                             consultaId = null,
-                            motivo = if (!salaLivre) "Sala ocupada nesse horário" else "Conflito de agenda para médico ou paciente"
+                            motivo = if (!salaComCapacidade) {
+                                "Sala atingiu o limite de 5 atendimentos nesse horário"
+                            } else {
+                                "Conflito de agenda para médico ou paciente"
+                            }
                         )
                     )
                     continue
@@ -535,7 +529,6 @@ class ConsultaService(
         )
     }
 
-    // Novo método de repositório será usado aqui para buscar as consultas do dia
     @Transactional
     fun listarPainelDoDia(data: LocalDate?, medico: String?, duracao: Int?): List<Map<String, Any?>> {
         val dataDia = data ?: LocalDate.now()
@@ -547,7 +540,7 @@ class ConsultaService(
             .filter { consulta ->
                 val duracaoConsulta = duracaoEmMinutos(consulta.duracaoConsulta)
                 val filtroDuracao = when (duracao) {
-                    50 -> duracaoConsulta == 50 || duracaoConsulta == 60 // ABA e Neuro
+                    50 -> duracaoConsulta == 50 || duracaoConsulta == 60
                     else -> duracao == null || duracaoConsulta == duracao
                 }
                 (medico.isNullOrBlank() || consulta.medico?.nome?.contains(medico, ignoreCase = true) == true) &&
@@ -581,7 +574,7 @@ class ConsultaService(
             }
     }
 
-    private fun salaDisponivelNoHorario(
+    private fun salaComCapacidadeNoHorario(
         salaId: Int,
         inicioConsulta: LocalDateTime,
         duracaoMin: Int,
@@ -594,11 +587,18 @@ class ConsultaService(
         val consultasSala = consultaRepository.findAtivasDaSalaNoDia(salaId, inicioDia, fimDia)
             .filter { consultaIgnorarId == null || it.id != consultaIgnorarId }
 
-        return consultasSala.none { consulta ->
-            val inicioExistente = consulta.datahoraConsulta ?: return@none false
-            val fimExistente = inicioExistente.plusMinutes(duracaoEmMinutos(consulta.duracaoConsulta).toLong())
+        val quantidadeSobreposta = consultasSala.count { consulta ->
+            val inicioExistente = consulta.datahoraConsulta ?: return@count false
+            val duracaoExistente = duracaoEmMinutos(consulta.duracaoConsulta)
+
+            if (duracaoExistente <= 0) return@count false
+
+            val fimExistente = inicioExistente.plusMinutes(duracaoExistente.toLong())
+
             overlaps(inicioConsulta, fimConsulta, inicioExistente, fimExistente)
         }
+
+        return quantidadeSobreposta < LIMITE_ATENDIMENTOS_POR_SALA
     }
 
     fun listarSalasDisponiveis(
@@ -607,11 +607,10 @@ class ConsultaService(
         duracaoMin: Int
     ) = salaAtendimentoRepository.findAllByOrderByNomeAsc().filter { sala ->
         val salaId = sala.id ?: return@filter false
-        salaDisponivelNoHorario(
+        salaComCapacidadeNoHorario(
             salaId = salaId,
             inicioConsulta = LocalDateTime.of(data, hora),
             duracaoMin = duracaoMin
         )
     }
-
 }

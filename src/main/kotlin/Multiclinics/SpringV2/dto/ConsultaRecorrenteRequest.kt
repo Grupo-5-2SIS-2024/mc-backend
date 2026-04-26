@@ -11,7 +11,7 @@ data class ConsultaRecorrenteRequest(
     @field:NotNull val especificacaoMedicaId: Int,
     @field:NotNull val statusConsultaId: Int = 1,
     @field:NotNull val duracaoMin: Int,            // 30, 50, 60
-    @field:NotNull val salaId: Int,
+    val salaId: Int? = null,
     val descricao: String? = null
 )
 
