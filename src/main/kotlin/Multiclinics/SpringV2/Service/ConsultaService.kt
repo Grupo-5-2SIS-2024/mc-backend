@@ -552,7 +552,7 @@ class ConsultaService(
                 val idade = paciente?.dataNascimento?.let { dn ->
                     java.time.Period.between(dn, dataDia).years
                 }
-                val convenioNome = paciente?.plano?.convenio?.nome
+                val convenioNome = paciente?.plano?.convenio?.nome ?: paciente?.plano?.nome
                 val statusId = consulta.statusConsulta?.id
                 val statusDesc = consulta.statusConsulta?.nomeStatus
                 val sala = consulta.sala?.nome
@@ -566,9 +566,11 @@ class ConsultaService(
                     "medicoSobrenome" to medicoObj?.sobrenome,
                     "idade" to idade,
                     "convenio" to convenioNome,
+                    "convenioNome" to convenioNome,
                     "statusId" to statusId,
                     "status" to statusDesc,
                     "sala" to sala,
+                    "salaNome" to sala,
                     "duracao" to duracaoEmMinutos(consulta.duracaoConsulta)
                 )
             }

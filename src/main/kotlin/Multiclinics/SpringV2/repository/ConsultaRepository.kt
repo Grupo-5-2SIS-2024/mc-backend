@@ -17,6 +17,8 @@ interface ConsultaRepository : JpaRepository<Consulta, Int> {
     from Consulta c
     left join fetch c.medico m
     left join fetch c.paciente p
+    left join fetch p.plano pl
+    left join fetch pl.convenio cv
     left join fetch c.sala s
     left join fetch c.statusConsulta sc
     where c.datahoraConsulta >= :inicio
