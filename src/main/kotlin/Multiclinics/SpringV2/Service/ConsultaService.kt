@@ -534,45 +534,53 @@ class ConsultaService(
         val dataDia = data ?: LocalDate.now()
         val inicio = dataDia.atStartOfDay()
         val fim = dataDia.plusDays(1).atStartOfDay()
-        val consultasDia = consultaRepository.findByDatahoraConsultaBetweenWithRelations(inicio, fim)
+        val consultasDia = consultaRepository.findPainelDoDiaRaw(inicio, fim)
 
         return consultasDia
-            .filter { consulta ->
-                val duracaoConsulta = duracaoEmMinutos(consulta.duracaoConsulta)
-                val filtroDuracao = when (duracao) {
-                    50 -> duracaoConsulta == 50 || duracaoConsulta == 60
-                    else -> duracao == null || duracaoConsulta == duracao
-                }
-                (medico.isNullOrBlank() || consulta.medico?.nome?.contains(medico, ignoreCase = true) == true) &&
-                        filtroDuracao
-            }
-            .map { consulta ->
-                val paciente = consulta.paciente
-                val medicoObj = consulta.medico
-                val idade = paciente?.dataNascimento?.let { dn ->
+            .map { row ->
+                val consultaId = (row.getOrNull(0) as? Number)?.toInt()
+                val dataHora = row.getOrNull(1) as? LocalDateTime
+                val pacienteNome = row.getOrNull(2) as? String
+                val pacienteSobrenome = row.getOrNull(3) as? String
+                val pacienteDataNascimento = row.getOrNull(4) as? LocalDate
+                val medicoNome = row.getOrNull(5) as? String
+                val medicoSobrenome = row.getOrNull(6) as? String
+                val statusId = (row.getOrNull(7) as? Number)?.toInt()
+                val statusDesc = row.getOrNull(8) as? String
+                val salaNome = row.getOrNull(9) as? String
+                val convenioNome = (row.getOrNull(10) as? String) ?: (row.getOrNull(11) as? String)
+                val duracaoLocalTime = row.getOrNull(12) as? LocalTime
+                val duracaoEmMinutos = duracaoEmMinutos(duracaoLocalTime)
+                val idade = pacienteDataNascimento?.let { dn ->
                     java.time.Period.between(dn, dataDia).years
                 }
-                val convenioNome = paciente?.plano?.convenio?.nome ?: paciente?.plano?.nome
-                val statusId = consulta.statusConsulta?.id
-                val statusDesc = consulta.statusConsulta?.nomeStatus
-                val sala = consulta.sala?.nome
+
                 mapOf(
-                    "consultaId" to consulta.id,
-                    "datahoraConsulta" to consulta.datahoraConsulta,
-                    "horario" to consulta.datahoraConsulta?.toLocalTime(),
-                    "paciente" to paciente?.nome,
-                    "pacienteSobrenome" to paciente?.sobrenome,
-                    "medico" to medicoObj?.nome,
-                    "medicoSobrenome" to medicoObj?.sobrenome,
+                    "consultaId" to consultaId,
+                    "datahoraConsulta" to dataHora,
+                    "horario" to dataHora?.toLocalTime(),
+                    "paciente" to pacienteNome,
+                    "pacienteSobrenome" to pacienteSobrenome,
+                    "medico" to medicoNome,
+                    "medicoSobrenome" to medicoSobrenome,
                     "idade" to idade,
                     "convenio" to convenioNome,
                     "convenioNome" to convenioNome,
                     "statusId" to statusId,
                     "status" to statusDesc,
-                    "sala" to sala,
-                    "salaNome" to sala,
-                    "duracao" to duracaoEmMinutos(consulta.duracaoConsulta)
+                    "sala" to salaNome,
+                    "salaNome" to salaNome,
+                    "duracao" to duracaoEmMinutos
                 )
+            }
+            .filter { linha ->
+                val duracaoConsulta = (linha["duracao"] as? Int) ?: 0
+                val filtroDuracao = when (duracao) {
+                    50 -> duracaoConsulta == 50 || duracaoConsulta == 60
+                    else -> duracao == null || duracaoConsulta == duracao
+                }
+                val medicoNome = linha["medico"] as? String
+                (medico.isNullOrBlank() || medicoNome?.contains(medico, ignoreCase = true) == true) && filtroDuracao
             }
     }
 

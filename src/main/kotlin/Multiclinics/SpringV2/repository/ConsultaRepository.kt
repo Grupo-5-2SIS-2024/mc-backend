@@ -29,6 +29,38 @@ interface ConsultaRepository : JpaRepository<Consulta, Int> {
         @Param("fim") fim: LocalDateTime
     ): List<Consulta>
 
+    @Query(
+        """
+        select
+            c.id,
+            c.datahoraConsulta,
+            p.nome,
+            p.sobrenome,
+            p.dataNascimento,
+            m.nome,
+            m.sobrenome,
+            sc.id,
+            sc.nomeStatus,
+            s.nome,
+            cv.nome,
+            pl.nome,
+            c.duracaoConsulta
+        from Consulta c
+        left join c.paciente p
+        left join p.plano pl
+        left join pl.convenio cv
+        left join c.medico m
+        left join c.statusConsulta sc
+        left join c.sala s
+        where c.datahoraConsulta >= :inicio
+          and c.datahoraConsulta < :fim
+        """
+    )
+    fun findPainelDoDiaRaw(
+        @Param("inicio") inicio: LocalDateTime,
+        @Param("fim") fim: LocalDateTime
+    ): List<Array<Any?>>
+
     @Query("""
     SELECT 
         p.nome AS nomePaciente, 
