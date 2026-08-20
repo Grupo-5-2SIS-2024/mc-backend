@@ -1,10 +1,8 @@
 package Multiclinics.SpringV2.controller
 
 import Multiclinics.SpringV2.Service.ConsultaService
-import Multiclinics.SpringV2.Service.StatusConsultaService
 import Multiclinics.SpringV2.dominio.Consulta
 import Multiclinics.SpringV2.repository.ConsultaRepository
-import Multiclinics.SpringV2.repository.MedicoRepository
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -13,6 +11,8 @@ import java.time.LocalDate
 import Multiclinics.SpringV2.dto.ConsultaRecorrenteRequest
 import Multiclinics.SpringV2.dto.ConsultaRecorrenteResponse
 import java.time.LocalTime
+import java.util.Map
+import java.util.HashMap
 
 
 
@@ -21,9 +21,7 @@ import java.time.LocalTime
 @RequestMapping("/consultas")
 class ConsultaController(
     val consultaRepository: ConsultaRepository,
-    val medicoRepository: MedicoRepository,
     val consultaService: ConsultaService,
-    private val statusConsultaService: StatusConsultaService
 ) {
 
 
@@ -85,14 +83,14 @@ class ConsultaController(
 
 
     @GetMapping("/altas-ultimos-seis-meses")
-    fun getAltasUltimosSeisMeses(): ResponseEntity<List<Map<String, Any>>> {
+    fun getAltasUltimosSeisMeses(): ResponseEntity<List<kotlin.collections.Map<String, Any>>> {
         val altas = consultaService.getAltasUltimosSeisMeses()
         return ResponseEntity.ok(altas)
     }
 
 
     @GetMapping("/horarios-ultimos-seis-meses")
-    fun getHorariosUltimosSeisMeses(): ResponseEntity<List<Map<String, Any>>> {
+    fun getHorariosUltimosSeisMeses(): ResponseEntity<List<kotlin.collections.Map<String, Any>>> {
         val horarios = consultaService.getHorariosUltimosSeisMeses()
         return ResponseEntity.ok(horarios)
     }
@@ -101,7 +99,7 @@ class ConsultaController(
 
 
     @GetMapping("/percentagem-concluidos")
-    fun getConcluidosETotal(): Map<String, Any> {
+    fun getConcluidosETotal(): kotlin.collections.Map<String, Any> {
         return consultaService.getConcluidosETotal()
     }
 
@@ -174,7 +172,7 @@ class ConsultaController(
         @RequestParam data: String,
         @RequestParam duracaoMin: Int,
         @RequestParam(required = false) pacienteId: Int?
-    ): ResponseEntity<Map<String, Any>> {
+    ): ResponseEntity<kotlin.collections.Map<String, List<String>>> {
         val d = LocalDate.parse(data)
         val lista = consultaService.listarHorariosDisponiveis(medicoId, d, duracaoMin, pacienteId)
         return ResponseEntity.ok(mapOf("horarios" to lista))
@@ -191,7 +189,7 @@ class ConsultaController(
         @RequestParam(required = false) data: String?,
         @RequestParam(required = false) medico: String?,
         @RequestParam(required = false) duracao: Int?
-    ): ResponseEntity<List<Map<String, Any?>>> {
+    ): ResponseEntity<List<kotlin.collections.Map<String, Any?>>> {
         val dataDia = if (data.isNullOrBlank()) null else LocalDate.parse(data)
         val resultado = consultaService.listarPainelDoDia(dataDia, medico, duracao)
         return ResponseEntity.ok(resultado)
@@ -202,11 +200,12 @@ class ConsultaController(
         @RequestParam data: String,
         @RequestParam hora: String,
         @RequestParam duracaoMin: Int
-    ): ResponseEntity<Map<String, Any>> {
+    ): ResponseEntity<kotlin.collections.Map<String, Any>> {
         val dataConsulta = LocalDate.parse(data)
         val horaConsulta = LocalTime.parse(hora)
         val lista = consultaService.listarSalasDisponiveis(dataConsulta, horaConsulta, duracaoMin)
-        return ResponseEntity.ok(mapOf("salas" to lista))
+        val response = mapOf("salas" to lista)
+        return ResponseEntity.ok(response)
     }
 
 
